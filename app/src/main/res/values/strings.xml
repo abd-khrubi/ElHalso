@@ -2,4 +2,5 @@
     <string name="app_name">Project</string>
     <string name="facebook_app_id">2756767837945268</string>
     <string name="fb_login_protocol_scheme">fb2756767837945268</string>
+    <string name="default_google_web_client_id">372906604429-df7jpa96gc8fbhq8atpe99s6sc3mnukj.apps.googleusercontent.com</string>
 </resources>
