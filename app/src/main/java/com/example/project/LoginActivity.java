@@ -2,12 +2,16 @@ package com.example.project;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ImageButton;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -18,8 +22,8 @@ import com.facebook.appevents.AppEventsLogger;
 import com.facebook.internal.WebDialog;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
-import com.firebase.ui.auth.AuthUI;
-import com.firebase.ui.auth.IdpResponse;
+//import com.firebase.ui.auth.AuthUI;
+//import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -44,8 +48,11 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mFirebaseAuth;
     private static final String TAG = "LoginAuthentication";
+    private boolean isBusinessLogin;
     private static final int RC_GOOGLE_SIGN_IN = 17;
     private static final int RC_SIGN_IN = 914;
+    private static final int BUSINESS_LOGO_ID = R.drawable.common_google_signin_btn_icon_disabled;
+    private static final int REGULAR_LOGO_ID = R.drawable.common_google_signin_btn_icon_dark;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +63,7 @@ public class LoginActivity extends AppCompatActivity {
         mFirebaseAuth = FirebaseAuth.getInstance();
         setupFacebookLogin();
         setupGoogleLogin();
+        isBusinessLogin = false;
 
 
 
@@ -74,6 +82,52 @@ public class LoginActivity extends AppCompatActivity {
 //                            .build(),
 //                    RC_SIGN_IN);
 //        }
+    }
+
+    public void showTypesDialog(View view){
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        View promptView = layoutInflater.inflate(R.layout.dialog_user_type, null);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+
+        final AlertDialog alertD = alertDialogBuilder.create();
+
+        ImageButton regularBtn = (ImageButton) promptView.findViewById(R.id.regularImgBtn);
+        ImageButton businessBtn = (ImageButton) promptView.findViewById(R.id.businessImgBtn);
+
+        regularBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateLoginType(false);
+                alertD.dismiss();
+            }
+        });
+        businessBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateLoginType(true);
+                alertD.dismiss();
+            }
+        });
+
+        alertD.show();
+    }
+
+    private void updateLoginType(boolean isBusiness){
+        if(this.isBusinessLogin == isBusiness)
+            return;
+
+        ImageButton logoImg = (ImageButton) findViewById(R.id.logoImgBtn);
+        this.isBusinessLogin = isBusiness;
+        if(isBusiness){
+            logoImg.setImageResource(BUSINESS_LOGO_ID);
+            Log.d(TAG, "setting business");
+        }
+        else {
+            logoImg.setImageResource(REGULAR_LOGO_ID);
+            Log.d(TAG, "setting regular");
+        }
     }
 
     private void setupGoogleLogin() {
@@ -149,22 +203,22 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Google sign in failed", e);
             }
         }
-        else if(requestCode == RC_SIGN_IN){
-            IdpResponse response = IdpResponse.fromResultIntent(data);
-
-            if (resultCode == RESULT_OK) {
-                // Successfully signed in
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                Log.d(TAG, "S U C C E S S");
-                Log.d(TAG, user.toString());
-                // ...
-            } else {
-                // Sign in failed. If response is null the user canceled the
-                // sign-in flow using the back button. Otherwise check
-                // response.getError().getErrorCode() and handle the error.
-                // ...
-            }
-        }
+//        else if(requestCode == RC_SIGN_IN){
+//            IdpResponse response = IdpResponse.fromResultIntent(data);
+//
+//            if (resultCode == RESULT_OK) {
+//                // Successfully signed in
+//                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//                Log.d(TAG, "S U C C E S S");
+//                Log.d(TAG, user.toString());
+//                // ...
+//            } else {
+//                // Sign in failed. If response is null the user canceled the
+//                // sign-in flow using the back button. Otherwise check
+//                // response.getError().getErrorCode() and handle the error.
+//                // ...
+//            }
+//        }
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
