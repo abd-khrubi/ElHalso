@@ -20,6 +20,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -108,19 +109,35 @@ public class EmailLoginActivity extends AppCompatActivity {
             return;
 
         String email = ((EditText)findViewById(R.id.emailTxt)).getText().toString();
-        String pass = ((EditText)findViewById(R.id.emailTxt)).getText().toString();
+        String pass = ((EditText)findViewById(R.id.passTxt)).getText().toString();
         final FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
 
         if(signupMode){
+            final String name = ((EditText)findViewById(R.id.nameTxt)).getText().toString();
             mFirebaseAuth.createUserWithEmailAndPassword(email, pass)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             if (task.isSuccessful()) {
                                 Log.d(TAG, "Sign up success");
-                                Intent intent = new Intent();
-                                setResult(Activity.RESULT_OK, intent);
-                                finish();
+
+                                // updating user name
+                                UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
+                                        .setDisplayName(name)
+                                        .build();
+                                mFirebaseAuth.getCurrentUser().updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if(task.isSuccessful())
+                                            Log.d(TAG, "Name update success");
+                                        else
+                                            Log.d(TAG, "Name update failed");
+
+                                        Intent intent = new Intent();
+                                        setResult(Activity.RESULT_OK, intent);
+                                        finish();
+                                    }
+                                });
                             } else {
                                 Log.d(TAG, "Authentication failed", task.getException());
                                 showMessage("Sign up failed. Please try again later.");
@@ -140,7 +157,6 @@ public class EmailLoginActivity extends AppCompatActivity {
                                 setResult(Activity.RESULT_OK, intent);
                                 finish();
                             } else {
-                                // If sign in fails, display a message to the user.
                                 Log.d(TAG, "Authentication failed", task.getException());
                                 showMessage("Authentication failed!");
                             }

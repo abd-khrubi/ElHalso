@@ -51,7 +51,6 @@ public class LoginActivity extends AppCompatActivity {
     private boolean isBusinessLogin;
     private static final int RC_GOOGLE_SIGN_IN = 901;
     private static final int RC_EMAIL_SIGN_IN = 902;
-    private static final int RC_SIGN_IN = 914;
     private static final int BUSINESS_LOGO_ID = R.drawable.common_google_signin_btn_icon_disabled;
     private static final int REGULAR_LOGO_ID = R.drawable.common_google_signin_btn_icon_dark;
 
@@ -192,15 +191,8 @@ public class LoginActivity extends AppCompatActivity {
         else if(requestCode == RC_EMAIL_SIGN_IN){
             Log.d(TAG, "signed in with email");
             Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getUid());
-            if(FirebaseAuth.getInstance().getCurrentUser().getDisplayName() == null){
-                Log.d(TAG, "user name is null");
-                return;
-            }
-            else {
-                Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
-                Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getEmail());
-                Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber());
-            }
+            Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+            Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getEmail());
         }
     }
 
@@ -211,19 +203,12 @@ public class LoginActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mFirebaseAuth.getCurrentUser();
                             Log.d(TAG, user.toString());
-//                            updateUI(user);
                         } else {
-                            // If sign in fails, display a message to the user.
                             Log.d(TAG, "signInWithCredential:failure", task.getException());
-//                            Snackbar.make(mBinding.mainLayout, "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
-//                            updateUI(null);
                         }
-
-                        // ...
                     }
                 });
     }
