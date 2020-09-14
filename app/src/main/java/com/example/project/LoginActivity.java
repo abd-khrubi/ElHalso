@@ -162,7 +162,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
                     Log.d(TAG, "Sign in to Firebase with credential successful");
-                    FirebaseUser user = mFirebaseAuth.getCurrentUser();
+                    successfulLogin();
                 }
                 else{
                     Log.d(TAG, "Sign in to Firebase with credential failed");
@@ -184,15 +184,12 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "firebaseAuthWithGoogle:" + account.getId());
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                // Google Sign In failed, update UI appropriately
                 Log.d(TAG, "Google sign in failed", e);
             }
         }
-        else if(requestCode == RC_EMAIL_SIGN_IN){
+        else if(requestCode == RC_EMAIL_SIGN_IN && resultCode == RESULT_OK){
             Log.d(TAG, "signed in with email");
-            Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getUid());
-            Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
-            Log.d(TAG, FirebaseAuth.getInstance().getCurrentUser().getEmail());
+            successfulLogin();
         }
     }
 
@@ -204,12 +201,21 @@ public class LoginActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mFirebaseAuth.getCurrentUser();
-                            Log.d(TAG, user.toString());
+                            successfulLogin();
                         } else {
                             Log.d(TAG, "signInWithCredential:failure", task.getException());
                         }
                     }
                 });
     }
+
+    private void successfulLogin() {
+        if(isBusinessLogin){
+            
+        }
+        else {
+            // start client login
+        }
+    }
+
 }

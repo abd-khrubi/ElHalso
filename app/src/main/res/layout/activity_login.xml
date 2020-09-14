@@ -41,6 +41,7 @@
         android:layout_marginTop="70dp"
         android:onClick="emailLogin"
         android:text="Continue with Email"
+        android:textAllCaps="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/logoImgBtn" />
