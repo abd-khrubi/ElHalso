@@ -11,6 +11,8 @@ public class Business {
     private ArrayList<String> gallery;
     private ArrayList<String> reviews;
 
+    public Business() { }
+
     public Business(String id, String name, double latitude, double longitude, String description, ArrayList<String> gallery, ArrayList<String> reviews) {
         this.id = id;
         this.name = name;
@@ -49,7 +51,15 @@ public class Business {
         return reviews;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

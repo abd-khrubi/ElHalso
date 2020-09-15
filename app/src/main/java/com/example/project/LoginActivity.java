@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -210,12 +212,37 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void successfulLogin() {
-        if(isBusinessLogin){
-            
-        }
-        else {
-            // start client login
-        }
+        FirebaseUser fUser = mFirebaseAuth.getCurrentUser();
+        final User user = new User(fUser.getUid(), fUser.getEmail(), fUser.getDisplayName());
+        final FirebaseHandler f = new FirebaseHandler();
+        final LiveData<Boolean> update = f.getUpdate();
+
+        f.updateOrCreateFirebaseUser(user);
+        update.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if(!aBoolean)
+                    return;
+                update.removeObserver(this);
+                LiveData<Boolean> up = f.getUpdate();
+                f.fetchBusinessForUser(user);
+                up.observe(LoginActivity.this, new Observer<Boolean>() {
+                    @Override
+                    public void onChanged(Boolean aBoolean) {
+                        if(!aBoolean)
+                            return;
+                        update.removeObserver(this);
+                        Log.d(TAG,"done " + aBoolean);
+                    }
+                });
+            }
+        });
+//        if(isBusinessLogin){
+//
+//        }
+//        else {
+//            // start client login
+//        }
     }
 
 }
