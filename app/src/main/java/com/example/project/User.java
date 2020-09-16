@@ -42,15 +42,14 @@ public class User {
     }
 
     public ArrayList<String> getFavorites() {
-        return favorites;
+        return favorites == null ? new ArrayList<String>() : favorites;
     }
 
     public void setBusinessID(String businessID) {
         this.businessID = businessID;
     }
 
-    public void setToOtherUser(User user) {
-        this.businessID = user.businessID;
-        this.favorites = user.favorites;
+    public void setFavorites(ArrayList<String> favorites) {
+        this.favorites = favorites;
     }
 }

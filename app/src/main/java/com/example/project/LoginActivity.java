@@ -41,6 +41,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -213,28 +214,33 @@ public class LoginActivity extends AppCompatActivity {
 
     private void successfulLogin() {
         FirebaseUser fUser = mFirebaseAuth.getCurrentUser();
-        final User user = new User(fUser.getUid(), fUser.getEmail(), fUser.getDisplayName());
-        final FirebaseHandler f = new FirebaseHandler();
-        final LiveData<Boolean> update = f.getUpdate();
+        final User user = new User(fUser.getUid(), fUser.getDisplayName(), fUser.getEmail());
+        final FirebaseHandler firebaseH = FirebaseHandler.getInstance();
+        final LiveData<Boolean> userUpdateDone = firebaseH.getUpdate();
 
-        f.updateOrCreateFirebaseUser(user);
-        update.observe(this, new Observer<Boolean>() {
+        firebaseH.updateOrCreateFirebaseUser(user);
+
+        // wait for user fetch to end
+        userUpdateDone.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
-                if(!aBoolean)
+                if (!aBoolean)
                     return;
-                update.removeObserver(this);
-                LiveData<Boolean> up = f.getUpdate();
-                f.fetchBusinessForUser(user);
-                up.observe(LoginActivity.this, new Observer<Boolean>() {
-                    @Override
-                    public void onChanged(Boolean aBoolean) {
-                        if(!aBoolean)
-                            return;
-                        update.removeObserver(this);
-                        Log.d(TAG,"done " + aBoolean);
-                    }
-                });
+                userUpdateDone.removeObserver(this);
+
+                if(!isBusinessLogin) {
+                    LiveData<Boolean> businessUpdateDone = firebaseH.getUpdate();
+                    firebaseH.fetchBusinessForUser(user);
+                    businessUpdateDone.observe(LoginActivity.this, new Observer<Boolean>() {
+                        @Override
+                        public void onChanged(Boolean aBoolean) {
+                            if (!aBoolean)
+                                return;
+                            userUpdateDone.removeObserver(this);
+                            goToBusiness((Business) firebaseH.getUpdatedObject());
+                        }
+                    });
+                }
             }
         });
 //        if(isBusinessLogin){
@@ -243,6 +249,12 @@ public class LoginActivity extends AppCompatActivity {
 //        else {
 //            // start client login
 //        }
+    }
+
+    private void goToBusiness(final Business business) {
+        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
+        final LiveData<Boolean> reviewsUpdated = firebaseHandler.getUpdate();
+
     }
 
 }
