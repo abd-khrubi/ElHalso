@@ -4,12 +4,17 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,6 +46,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +60,7 @@ public class LoginActivity extends AppCompatActivity {
     private boolean isBusinessLogin;
     private static final int RC_GOOGLE_SIGN_IN = 901;
     private static final int RC_EMAIL_SIGN_IN = 902;
+
     private static final int BUSINESS_LOGO_ID = R.drawable.common_google_signin_btn_icon_disabled;
     private static final int REGULAR_LOGO_ID = R.drawable.common_google_signin_btn_icon_dark;
 
@@ -215,10 +222,10 @@ public class LoginActivity extends AppCompatActivity {
     private void successfulLogin() {
         FirebaseUser fUser = mFirebaseAuth.getCurrentUser();
         final User user = new User(fUser.getUid(), fUser.getDisplayName(), fUser.getEmail());
-        final FirebaseHandler firebaseH = FirebaseHandler.getInstance();
-        final LiveData<Boolean> userUpdateDone = firebaseH.getUpdate();
+        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
+        final LiveData<Boolean> userUpdateDone = firebaseHandler.getUpdate();
 
-        firebaseH.updateOrCreateFirebaseUser(user);
+        firebaseHandler.updateOrCreateFirebaseUser(user);
 
         // wait for user fetch to end
         userUpdateDone.observe(this, new Observer<Boolean>() {
@@ -227,34 +234,75 @@ public class LoginActivity extends AppCompatActivity {
                 if (!aBoolean)
                     return;
                 userUpdateDone.removeObserver(this);
+                ((AppLoader) getApplicationContext()).setUser(user);
 
                 if(!isBusinessLogin) {
-                    LiveData<Boolean> businessUpdateDone = firebaseH.getUpdate();
-                    firebaseH.fetchBusinessForUser(user);
+                    // regular user log in
+                }
+                else {
+                    // need to fetch business for user
+                    LiveData<Boolean> businessUpdateDone = firebaseHandler.getUpdate();
+                    firebaseHandler.fetchBusinessForUser(user);
                     businessUpdateDone.observe(LoginActivity.this, new Observer<Boolean>() {
                         @Override
                         public void onChanged(Boolean aBoolean) {
                             if (!aBoolean)
                                 return;
                             userUpdateDone.removeObserver(this);
-                            goToBusiness((Business) firebaseH.getUpdatedObject());
+                            Business business = (Business) firebaseHandler.getUpdatedObject();
+                            goToBusiness(business);
                         }
                     });
                 }
             }
         });
-//        if(isBusinessLogin){
-//
-//        }
-//        else {
-//            // start client login
-//        }
     }
 
     private void goToBusiness(final Business business) {
-        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
-        final LiveData<Boolean> reviewsUpdated = firebaseHandler.getUpdate();
-
+        ((AppLoader) getApplicationContext()).setBusiness(business);
+//        Intent intent = new Intent();
+//        intent.setType("image/*");
+//        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+//        intent.setAction(Intent.ACTION_GET_CONTENT);
+//        startActivityForResult(Intent.createChooser(intent,"Select Picture"), 177);
+//
+//        if(requestCode == SELECT && resultCode == RESULT_OK) {
+//            if(data.getClipData() != null) {
+//                ArrayList<Uri> list = new ArrayList<>();
+//
+//                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+//                    list.add(data.getClipData().getItemAt(i).getUri());
+//                }
+//                Bitmap bitmap1 = null, bitmap2 = null;
+//                try {
+//                    bitmap1 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), list.get(0));
+//                    bitmap2 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), list.get(1));
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                bitmap1 = Bitmap.createScaledBitmap(bitmap1,150, 150, true);
+//                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap1);
+//                bitmap2 = Bitmap.createScaledBitmap(bitmap2,150, 150, true);
+//                ((ImageButton)findViewById(R.id.tempImg2)).setImageBitmap(bitmap2);
+//            }
+//            else if(data.getData() != null){
+//                Uri uri = data.getData();
+////                FirebaseHandler.getInstance().addImageToBusinessGallery(new Business(), uri, "image2.jpg");
+//                Log.d(TAG, uri.getLastPathSegment());
+//                Log.d(TAG, uri.getPath());
+//                Log.d(TAG, DocumentFile.fromSingleUri(this, uri).getName());
+////                Bitmap bitmap= BitmapFactory.decodeFile(uri.getPath());
+//                Bitmap bitmap = null;
+//                try {
+//                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                bitmap = Bitmap.createScaledBitmap(bitmap,((ImageButton)findViewById(R.id.tempImg)).getWidth(), ((ImageButton)findViewById(R.id.tempImg)).getHeight(), true);
+//                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap);
+////                ((ImageButton)findViewById(R.id.tempImg)).setImageURI(uri);
+//            }
+//        }
     }
 
 }

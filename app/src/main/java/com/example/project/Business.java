@@ -14,6 +14,10 @@ public class Business {
 
     public Business() { }
 
+    public Business(String id) {
+        this.id = id;
+    }
+
     public Business(String id, String name, GeoPoint coordinates, String description, ArrayList<String> gallery, ArrayList<Review> reviews) {
         this.id = id;
         this.name = name;
@@ -40,15 +44,11 @@ public class Business {
     }
 
     public ArrayList<String> getGallery() {
-        return gallery;
+        return gallery == null ? new ArrayList<String>() : gallery;
     }
 
     public ArrayList<Review> getReviews() {
         return reviews == null ? new ArrayList<Review>() : reviews;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public void setName(String name) {
@@ -59,7 +59,23 @@ public class Business {
         this.description = description;
     }
 
-    public void setReviews(ArrayList<Review> reviews) {
-        this.reviews = reviews;
+    public void addReview(Review review) {
+        reviews = getReviews();
+        reviews.add(review);
+    }
+
+    public void removeReview(Review review) {
+        reviews = getReviews();
+        reviews.remove(review);
+    }
+
+    public void addImage(String image) {
+        gallery = getGallery();
+        gallery.add(image);
+    }
+
+    public void removeImage(String image) {
+        gallery = getGallery();
+        gallery.remove(image);
     }
 }
