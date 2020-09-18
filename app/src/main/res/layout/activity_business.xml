@@ -7,4 +7,83 @@
     android:layout_height="match_parent"
     tools:context=".BusinessActivity">
 
-  </androidx.constraintlayout.widget.ConstraintLayout>
+  <ImageView
+      android:id="@+id/logoImg"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="30dp"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="parent"
+      app:srcCompat="@mipmap/ic_launcher" />
+
+  <TextView
+      android:id="@+id/nameTxt"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="50dp"
+      android:layout_marginTop="50dp"
+      android:text="Business name"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/logoImg" />
+
+  <TextView
+      android:id="@+id/statsTxt"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="30dp"
+      android:text="Statistics"
+      app:layout_constraintStart_toStartOf="@+id/nameTxt"
+      app:layout_constraintTop_toBottomOf="@+id/nameTxt" />
+
+  <TextView
+      android:id="@+id/reviewsTxt"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="20dp"
+      android:text="0 reviews
+"
+      app:layout_constraintStart_toEndOf="@+id/statsTxt"
+      app:layout_constraintTop_toTopOf="@+id/statsTxt" />
+
+  <TextView
+      android:id="@+id/statsTEMP"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="30dp"
+      android:text="STATS TO SHOW"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/statsTxt" />
+
+  <TextView
+      android:id="@+id/galleryTxt"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="60dp"
+      android:text="Gallery"
+      app:layout_constraintStart_toStartOf="@+id/statsTxt"
+      app:layout_constraintTop_toBottomOf="@+id/statsTEMP" />
+
+  <TextView
+      android:id="@+id/imagesTEMP"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="40dp"
+      android:text="IMAGES"
+      app:layout_constraintStart_toStartOf="@+id/galleryTxt"
+      app:layout_constraintTop_toBottomOf="@+id/galleryTxt" />
+
+  <Button
+      android:id="@+id/editBtn"
+      android:textAllCaps="false"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="20dp"
+      android:layout_marginBottom="30dp"
+      android:onClick="editBusiness"
+      android:text="Edit"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

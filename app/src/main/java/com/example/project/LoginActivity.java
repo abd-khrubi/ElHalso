@@ -260,6 +260,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void goToBusiness(final Business business) {
         ((AppLoader) getApplicationContext()).setBusiness(business);
+        Intent intent = new Intent(this, BusinessActivity.class);
+        startActivity(intent);
 //        FirebaseHandler.getInstance().fetchImageForBusiness(business, "oc.jpg", this.getFilesDir());
 //        Intent intent = new Intent();
 //        intent.setAction(Intent.ACTION_VIEW);

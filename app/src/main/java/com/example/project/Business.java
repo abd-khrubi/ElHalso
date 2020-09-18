@@ -9,6 +9,7 @@ public class Business {
     private String name;
     private GeoPoint coordinates;
     private String description;
+    private String logo;
     private ArrayList<String> gallery;
     private ArrayList<Review> reviews;
 
@@ -18,11 +19,12 @@ public class Business {
         this.id = id;
     }
 
-    public Business(String id, String name, GeoPoint coordinates, String description, ArrayList<String> gallery, ArrayList<Review> reviews) {
+    public Business(String id, String name, GeoPoint coordinates, String description, String logo, ArrayList<String> gallery, ArrayList<Review> reviews) {
         this.id = id;
         this.name = name;
         this.coordinates = coordinates;
         this.description = description;
+        this.logo = logo;
         this.gallery = gallery;
         this.reviews = reviews;
     }
@@ -41,6 +43,10 @@ public class Business {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getLogo() {
+        return logo;
     }
 
     public ArrayList<String> getGallery() {
@@ -67,6 +73,14 @@ public class Business {
     public void removeReview(Review review) {
         reviews = getReviews();
         reviews.remove(review);
+    }
+
+    public void setCoordinates(GeoPoint coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public void setLogo(String logo) {
+        this.logo = logo;
     }
 
     public void addImage(String image) {
