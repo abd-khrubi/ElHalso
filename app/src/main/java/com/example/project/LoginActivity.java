@@ -236,7 +236,7 @@ public class LoginActivity extends AppCompatActivity {
                 userUpdateDone.removeObserver(this);
                 ((AppLoader) getApplicationContext()).setUser(user);
 
-                if(!isBusinessLogin) {
+                if(isBusinessLogin) {
                     // regular user log in
                 }
                 else {
@@ -260,6 +260,13 @@ public class LoginActivity extends AppCompatActivity {
 
     private void goToBusiness(final Business business) {
         ((AppLoader) getApplicationContext()).setBusiness(business);
+//        FirebaseHandler.getInstance().fetchImageForBusiness(business, "oc.jpg", this.getFilesDir());
+//        Intent intent = new Intent();
+//        intent.setAction(Intent.ACTION_VIEW);
+//        intent.setDataAndType(Uri.withAppendedPath(Uri.fromFile(this.getFilesDir()), business.getId()), "image/*");
+//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//        startActivity(intent);
 //        Intent intent = new Intent();
 //        intent.setType("image/*");
 //        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);

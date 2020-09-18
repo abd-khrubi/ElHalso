@@ -17,12 +17,14 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.ListResult;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ public class FirebaseHandler {
     private static final String BUSINESS = "business";
     private static final String USERS = "users";
     private static final String TAG = "FirebaseHandler";
+    private static final String LOCAL_DOWNLOAD_FOLDER = "myproject";
 
     private FirebaseHandler() {
         firestore = FirebaseFirestore.getInstance();
@@ -212,6 +215,37 @@ public class FirebaseHandler {
                 }
                 else {
                     Log.d(TAG, "failed to delete image from storage");
+                }
+            }
+        });
+    }
+
+    public void fetchImageForBusiness(Business business, String image, File appDir) {
+        File folder = new File(appDir, business.getId());
+        if(!folder.exists()) {
+            folder.mkdir();
+        }
+        final File localFile = new File(folder, image);
+        if(localFile.exists()){
+            updateDone.postValue(true);
+            return;
+        }
+
+        try {
+            localFile.createNewFile();
+        } catch (IOException e) {
+            Log.d(TAG, "failed to create file");
+            Log.d(TAG, e.toString());
+        }
+        storage.getReference().child(business.getId() + "/" + image).getFile(localFile).addOnCompleteListener(new OnCompleteListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<FileDownloadTask.TaskSnapshot> task) {
+                if(task.isSuccessful()){
+                    Log.d(TAG, "image downloaded successfully");
+                    updateDone.postValue(true);
+                }
+                else {
+                    Log.d(TAG, "image failed to download");
                 }
             }
         });
