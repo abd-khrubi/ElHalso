@@ -45,6 +45,7 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -260,8 +261,30 @@ public class LoginActivity extends AppCompatActivity {
 
     private void goToBusiness(final Business business) {
         ((AppLoader) getApplicationContext()).setBusiness(business);
-        Intent intent = new Intent(this, BusinessActivity.class);
+        Intent intent;
+        if(business.getName() == null) {
+             intent = new Intent(this, BusinessActivity.class);
+        }
+        else {
+            intent = new Intent(this, EditBusinessActivity.class);
+        }
         startActivity(intent);
+        finish();
+//        final LiveData<Boolean> update = FirebaseHandler.getInstance().getUpdate();
+//        GeoPoint myLoc = new GeoPoint(32.818209, 35.250729);
+//        FirebaseHandler.getInstance().fetchNearbyBusinesses(myLoc, 5);
+//        update.observe(this, new Observer<Boolean>() {
+//            @Override
+//            public void onChanged(Boolean aBoolean) {
+//                if(!aBoolean)
+//                    return;
+//                update.removeObserver(this);
+//                Log.d(TAG, "size: " + ((ArrayList<Business>) FirebaseHandler.getInstance().getUpdatedObject()).size());
+//                for(Business business : (ArrayList<Business>) FirebaseHandler.getInstance().getUpdatedObject()){
+//                    Log.d(TAG, business.getName());
+//                }
+//            }
+//        });
 //        FirebaseHandler.getInstance().fetchImageForBusiness(business, "oc.jpg", this.getFilesDir());
 //        Intent intent = new Intent();
 //        intent.setAction(Intent.ACTION_VIEW);

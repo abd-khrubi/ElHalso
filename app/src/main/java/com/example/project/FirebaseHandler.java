@@ -16,6 +16,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
@@ -31,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.lang.Math.toRadians;
 
 public class FirebaseHandler {
 
@@ -166,8 +169,75 @@ public class FirebaseHandler {
         });
     }
 
-    public void fetchNearbyBusinesses(GeoPoint myLocation, double distance){
+    public void fetchNearbyBusinesses(final GeoPoint myLocation, final double distance){
+//        final GeoPoint orig = calculateGeopointAtDistanceFrom(myLocation, 0, 0);
+//        GeoPoint north = calculateGeopointAtDistanceFrom(orig, distance, 0);
+//        GeoPoint south = calculateGeopointAtDistanceFrom(orig, distance, 180);
+//        GeoPoint east = calculateGeopointAtDistanceFrom(orig, distance, 90);
+//        GeoPoint west = calculateGeopointAtDistanceFrom(orig, distance, 270);
+//
+//        Log.d(TAG, "MyLoc:" + orig.toString());
+//        Log.d(TAG, "West:" + north.toString());
+//        Log.d(TAG, "East:" + north.toString());
+//        Log.d(TAG, "South:" + south.toString());
+//        Log.d(TAG, "North:" + north.toString());
 
+
+        firestore.collection(BUSINESS).whereGreaterThanOrEqualTo("name", "")
+//                .whereGreaterThanOrEqualTo("coordinates", west)
+//                .whereLessThanOrEqualTo("coordinates", east)
+//                .whereGreaterThanOrEqualTo("coordinates", south)
+//                .whereLessThanOrEqualTo("coordinates", north)
+                .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()) {
+                    Log.d(TAG, "successfully queried " + task.getResult().size() + " businesses");
+                    ArrayList<Business> businesses = new ArrayList<>();
+                    for(QueryDocumentSnapshot doc : task.getResult()){
+                        if(calculateDistance(myLocation, doc.getGeoPoint("coordinates")) <= distance*1000) {
+                            businesses.add(doc.toObject(Business.class));
+                        }
+                    }
+                    objectToUpdate = businesses;
+                    updateDone.postValue(true);
+                }
+                else {
+                    Log.d(TAG, "failed to query");
+                }
+            }
+        });
+    }
+
+    private double calculateDistance(GeoPoint point1, GeoPoint point2) {
+        float[] result = new float[1];
+//        Location.distanceBetween(Math.toRadians(point1.getLatitude()), Math.toRadians(point1.getLongitude()), Math.toRadians(point2.getLatitude()), Math.toRadians(point2.getLongitude()), result);
+        Location.distanceBetween(point1.getLatitude(), point1.getLongitude(), point2.getLatitude(), point2.getLongitude(), result);
+        return result[0];
+    }
+
+    private GeoPoint calculateGeopointAtDistanceFrom(GeoPoint location, double distance, double bearing) {
+//        double dist = distance/6371.0;
+//        double brng = Math.toRadians(bearing);
+//        double lat1 = Math.toRadians(location.getLatitude());
+//        double lon1 = Math.toRadians(location.getLongitude());
+//
+//        double lat2 = Math.asin( Math.sin(lat1)*Math.cos(dist) + Math.cos(lat1)*Math.sin(dist)*Math.cos(brng) );
+//        double a = Math.atan2(Math.sin(brng)*Math.sin(dist)*Math.cos(lat1), Math.cos(dist)-Math.sin(lat1)*Math.sin(lat2));
+//        double lon2 = lon1 + a;
+//
+//        lon2 = (lon2+ 3*Math.PI) % (2*Math.PI) - Math.PI;
+//        return new GeoPoint(Math.toDegrees(lat2), Math.toDegrees(lon2));
+
+        double brngRad = Math.toRadians(bearing);
+        double latRad = Math.toRadians(location.getLatitude());
+        double lonRad = Math.toRadians(location.getLongitude());
+        double distFrac = distance / 6371.0;
+
+        double latitudeResult = Math.asin(Math.sin(latRad) * Math.cos(distFrac) + Math.cos(latRad) * Math.sin(distFrac) * Math.cos(brngRad));
+        double a = Math.atan2(Math.sin(brngRad) * Math.sin(distFrac) * Math.cos(latRad), Math.cos(distFrac) - Math.sin(latRad) * Math.sin(latitudeResult));
+        double longitudeResult = (lonRad + a + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+        return new GeoPoint(Math.toDegrees(latitudeResult), Math.toDegrees(longitudeResult));
     }
 
     public void updateBusiness(final Business newBusiness){
