@@ -71,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseAuth.signOut();
+//        mFirebaseAuth.signOut();
         setupFacebookLogin();
         setupGoogleLogin();
         isBusinessLogin = false;
@@ -262,12 +262,7 @@ public class LoginActivity extends AppCompatActivity {
     private void goToBusiness(final Business business) {
         ((AppLoader) getApplicationContext()).setBusiness(business);
         Intent intent;
-        if(business.getName() == null) {
-             intent = new Intent(this, BusinessActivity.class);
-        }
-        else {
-            intent = new Intent(this, EditBusinessActivity.class);
-        }
+        intent = new Intent(this, business.getName() == null ? EditBusinessActivity.class : BusinessActivity.class);
         startActivity(intent);
         finish();
 //        final LiveData<Boolean> update = FirebaseHandler.getInstance().getUpdate();

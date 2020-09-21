@@ -14,12 +14,16 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements ImageMoveCallback.ImageTouchHelperContract{
+    private static final float FULL_ALPHA = 1.0f;
+    private static final float SELECTED_ALPHA = 0.7f;
     private Business business;
     private boolean selecting;
     private boolean isEditMode;
     private ArrayList<Integer> selectedImages;
+    private ArrayList<Integer> imagesOrder;
     private GalleryImageListener clickListener;
     private StartDragListener startDragListener;
 
@@ -31,6 +35,9 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         this.selecting = false;
         this.isEditMode = isEditMode;
         this.startDragListener = startDragListener;
+        this.imagesOrder = new ArrayList<>();
+        for(int i=0;i<business.getGallery().size();i++)
+            imagesOrder.add(i);
     }
 
     public void setImageClickListener(GalleryImageListener clickListener) {
@@ -61,62 +68,67 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     @Override
     public void onBindViewHolder(@NonNull final ImageHolder holder, final int position) {
+        if(position >= business.getGallery().size())
+            return;
+        final int imageIndex = imagesOrder.get(position);
         holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
-        holder.selectedBox.setChecked(selectedImages.contains(position));
+        holder.selectedBox.setChecked(selectedImages.contains(imageIndex));
         // todo: set gallery image
-        Log.d(TAG, "setting image " + business.getGallery().get(position) + " at position " + position);
+        Log.d(TAG, "setting image " + business.getGallery().get(imageIndex) + " at position " + position);
 
-        holder.imageBtn.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int action = event.getAction();
-                if (action == MotionEvent.ACTION_MOVE) {
-                    startDragListener.requestDrag(holder);
-                }
-                return false;
-            }
-        });
-//        View.OnClickListener clickListener = new View.OnClickListener() {
+//        holder.imageView.setOnTouchListener(new View.OnTouchListener() {
 //            @Override
-//            public void onClick(View v) {
-//                Log.d(TAG, "in onClick");
-//                if(selecting) {
-//                    if(selectedImages.contains(position)){
-//                        selectedImages.remove(selectedImages.indexOf(position));
-//                        holder.selectedBox.setChecked(false);
-//                        if(selectedImages.isEmpty()){
-//                            triggerSelecting();
-//                            return;
-//                        }
-//                    }
-//                    else {
-//                        selectedImages.add(position);
-//                        holder.selectedBox.setChecked(true);
-//                    }
-//                    notifyItemChanged(position);
-//                    return;
+//            public boolean onTouch(View v, MotionEvent event) {
+//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//
 //                }
-//                // todo: view image
-//                Log.d(TAG, "viewing image at " + position);
-//            }
-//        };
-//
-//        holder.imageBtn.setOnClickListener(clickListener);
-//        holder.selectedBox.setOnClickListener(clickListener);
-//
-//        if(!isEditMode)
-//            return;
-//
-//        holder.imageBtn.setOnLongClickListener(new View.OnLongClickListener() {
-//            @Override
-//            public boolean onLongClick(View v) {
-//                Log.d(TAG, "in onLongClick");
-//                selectedImages.add(position);
-//                holder.selectedBox.setChecked(true);
-//                triggerSelecting();
 //                return true;
 //            }
 //        });
+
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "in onClick");
+                if(selecting) {
+                    if(selectedImages.contains(imageIndex)){
+                        selectedImages.remove(selectedImages.indexOf(imageIndex));
+                        holder.selectedBox.setChecked(false);
+                        if(selectedImages.isEmpty()){
+                            triggerSelecting();
+                            return;
+                        }
+                    }
+                    else {
+                        selectedImages.add(imageIndex);
+                        holder.selectedBox.setChecked(true);
+                    }
+                    notifyItemChanged(position);
+                    return;
+                }
+                // todo: view image
+                Log.d(TAG, "viewing image " + business.getGallery().get(imageIndex) + "at " + position);
+            }
+        };
+
+        holder.imageView.setOnClickListener(clickListener);
+        holder.selectedBox.setOnClickListener(clickListener);
+
+        if(!isEditMode)
+            return;
+
+        holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(selecting) {
+                    startDragListener.requestDrag(holder);
+                    return true;
+                }
+                selectedImages.add(imageIndex);
+                triggerSelecting();
+                return true;
+            }
+        });
     }
 
     @Override
@@ -126,16 +138,17 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     @Override
     public void onImageMoved(int fromPosition, int toPosition) {
-        Log.d(TAG, "moved image " + fromPosition + " to " + toPosition);
+        Collections.swap(imagesOrder, fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
     }
 
     @Override
     public void onImageSelected(ImageHolder imageHolder) {
-        Log.d(TAG, "selected image");
+        imageHolder.itemView.setAlpha(SELECTED_ALPHA);
     }
 
     @Override
     public void onImageClear(ImageHolder imageHolder) {
-        Log.d(TAG, "clear image");
+        imageHolder.itemView.setAlpha(FULL_ALPHA);
     }
 }

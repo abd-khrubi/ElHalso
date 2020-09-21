@@ -30,6 +30,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         touchHelper = new ItemTouchHelper(new ImageMoveCallback(adapter));
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMNS_COUNT));
+        touchHelper.attachToRecyclerView(galleryRecyclerView);
     }
 
     @Override
