@@ -4,12 +4,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -74,6 +72,8 @@ public class EditBusinessActivity extends AppCompatActivity {
     public void editGalleryButton(View view) {
         Intent intent = new Intent(this, GalleryActivity.class);
         intent.putExtra("mode", "editable");
+        intent.putExtra("gallery", business.getGallery());
+
         startActivityForResult(intent, RC_EDIT_GALLERY);
     }
 
@@ -84,5 +84,9 @@ public class EditBusinessActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == RC_EDIT_GALLERY && resultCode == RESULT_OK) {
+
+        }
     }
 }

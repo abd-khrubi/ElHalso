@@ -1,10 +1,13 @@
 package com.example.project;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
 
-public class Business {
+public class Business implements Parcelable {
     private String id;
     private String name;
     private GeoPoint coordinates;
@@ -28,6 +31,54 @@ public class Business {
         this.gallery = gallery;
         this.reviews = reviews;
     }
+
+    public Business(Business business) {
+        this.id = business.id;
+        this.name = business.name;
+        this.coordinates = business.coordinates;
+        this.description = business.description;
+        this.logo = business.logo;
+        this.gallery = business.gallery;
+        this.reviews = business.reviews;
+    }
+
+    protected Business(Parcel in) {
+        id = in.readString();
+        name = in.readString();
+        if(in.readInt() == 1)
+            coordinates = new GeoPoint(in.readDouble(), in.readDouble());
+        description = in.readString();
+        logo = in.readString();
+        gallery = in.createStringArrayList();
+        reviews = in.createTypedArrayList(Review.CREATOR);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(name);
+        dest.writeInt(coordinates != null ? 1 : 0);
+        if(coordinates != null){
+            dest.writeDouble(coordinates.getLatitude());
+            dest.writeDouble(coordinates.getLongitude());
+        }
+        dest.writeString(description);
+        dest.writeString(logo);
+        dest.writeStringList(gallery);
+        dest.writeTypedList(reviews);
+    }
+
+    public static final Creator<Business> CREATOR = new Creator<Business>() {
+        @Override
+        public Business createFromParcel(Parcel in) {
+            return new Business(in);
+        }
+
+        @Override
+        public Business[] newArray(int size) {
+            return new Business[size];
+        }
+    };
 
     public String getId() {
         return id;
@@ -91,5 +142,10 @@ public class Business {
     public void removeImage(String image) {
         gallery = getGallery();
         gallery.remove(image);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 }

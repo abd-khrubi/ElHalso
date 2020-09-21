@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -19,6 +20,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -69,7 +71,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
+        ((ImageView)findViewById(R.id.temp)).setBackgroundColor(Color.parseColor("#FF009688"));
         mFirebaseAuth = FirebaseAuth.getInstance();
 //        mFirebaseAuth.signOut();
         setupFacebookLogin();

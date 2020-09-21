@@ -1,6 +1,7 @@
 package com.example.project;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.media.Image;
 import android.util.Log;
 import android.view.DragEvent;
@@ -19,29 +20,28 @@ import java.util.Collections;
 public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements ImageMoveCallback.ImageTouchHelperContract{
     private static final float FULL_ALPHA = 1.0f;
     private static final float SELECTED_ALPHA = 0.7f;
-    private Business business;
+    private ArrayList<String> gallery;
     private boolean selecting;
     private boolean isEditMode;
     private ArrayList<Integer> selectedImages;
     private ArrayList<Integer> imagesOrder;
-    private GalleryImageListener clickListener;
     private StartDragListener startDragListener;
 
     private static final String TAG = "GalleryAdapter";
 
-    public GalleryAdapter(Business business, boolean isEditMode, StartDragListener startDragListener){
-        this.business = business;
+    public GalleryAdapter(ArrayList<String> gallery, boolean isEditMode, StartDragListener startDragListener){
+        this.gallery = gallery;
         this.selectedImages = new ArrayList<>();
         this.selecting = false;
         this.isEditMode = isEditMode;
         this.startDragListener = startDragListener;
         this.imagesOrder = new ArrayList<>();
-        for(int i=0;i<business.getGallery().size();i++)
+        for(int i=0;i<gallery.size();i++)
             imagesOrder.add(i);
     }
 
-    public void setImageClickListener(GalleryImageListener clickListener) {
-        this.clickListener = clickListener;
+    public ArrayList<Integer> getSelectedImages() {
+        return selectedImages;
     }
 
     public boolean getIsSelecting(){
@@ -68,31 +68,22 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     @Override
     public void onBindViewHolder(@NonNull final ImageHolder holder, final int position) {
-        if(position >= business.getGallery().size())
+        if(position >= gallery.size())
             return;
-        final int imageIndex = imagesOrder.get(position);
-        holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
-        holder.selectedBox.setChecked(selectedImages.contains(imageIndex));
-        // todo: set gallery image
-        Log.d(TAG, "setting image " + business.getGallery().get(imageIndex) + " at position " + position);
+//        final int imageIndex = imagesOrder.get(position);
 
-//        holder.imageView.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//
-//                }
-//                return true;
-//            }
-//        });
+        holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
+        holder.selectedBox.setChecked(selectedImages.contains(position));
+        // todo: set gallery image
+        holder.imageView.setBackgroundColor(Color.parseColor(gallery.get(position).split("\\.")[0]));
+        holder.textView.setText(gallery.get(position).split("\\.")[1]);
 
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "in onClick");
                 if(selecting) {
-                    if(selectedImages.contains(imageIndex)){
-                        selectedImages.remove(selectedImages.indexOf(imageIndex));
+                    if(selectedImages.contains(position)){
+                        selectedImages.remove(selectedImages.indexOf(position));
                         holder.selectedBox.setChecked(false);
                         if(selectedImages.isEmpty()){
                             triggerSelecting();
@@ -100,14 +91,14 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                         }
                     }
                     else {
-                        selectedImages.add(imageIndex);
+                        selectedImages.add(position);
                         holder.selectedBox.setChecked(true);
                     }
                     notifyItemChanged(position);
                     return;
                 }
                 // todo: view image
-                Log.d(TAG, "viewing image " + business.getGallery().get(imageIndex) + "at " + position);
+                Log.d(TAG, "viewing image " + gallery.get(position) + "at adapter " + (position + 1));
             }
         };
 
@@ -120,11 +111,11 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if(selecting) {
+                if(selecting && startDragListener != null) {
                     startDragListener.requestDrag(holder);
                     return true;
                 }
-                selectedImages.add(imageIndex);
+                selectedImages.add(position);
                 triggerSelecting();
                 return true;
             }
@@ -133,12 +124,13 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     @Override
     public int getItemCount() {
-        return business.getGallery().size();
+        return gallery.size();
     }
 
     @Override
     public void onImageMoved(int fromPosition, int toPosition) {
-        Collections.swap(imagesOrder, fromPosition, toPosition);
+        String toSwap = gallery.remove(fromPosition);
+        gallery.add(toPosition, toSwap);
         notifyItemMoved(fromPosition, toPosition);
     }
 
@@ -150,5 +142,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     @Override
     public void onImageClear(ImageHolder imageHolder) {
         imageHolder.itemView.setAlpha(FULL_ALPHA);
+        notifyDataSetChanged();
     }
 }
