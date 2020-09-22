@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -27,6 +28,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_business);
         business = ((AppLoader) getApplicationContext()).getBusiness();
         fillInBusinessDetails(savedInstanceState);
+        Log.d("EditBus", business.getId());
     }
 
     private void fillInBusinessDetails(Bundle savedInstanceState){
@@ -86,7 +88,16 @@ public class EditBusinessActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode == RC_EDIT_GALLERY && resultCode == RESULT_OK) {
-
+            ArrayList<String> newGallery = data.getStringArrayListExtra("gallery");
+            boolean changed = newGallery.size() != business.getGallery().size();
+            for(int i=0;i<newGallery.size();i++){
+                if(changed || !business.getGallery().get(i).equals(newGallery.get(i))) {
+                    changed = true;
+                    break;
+                }
+            }
+            if(changed)
+                business.setGallery(newGallery);
         }
     }
 }

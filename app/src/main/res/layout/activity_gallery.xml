@@ -10,7 +10,7 @@
         android:id="@+id/titleTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
+        android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
         android:text="Title"
         app:layout_constraintStart_toStartOf="parent"
@@ -27,46 +27,37 @@
         tools:layout_editor_absoluteX="1dp" />
 
     <ImageView
-        android:id="@+id/cancelBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/okBtn"
+        android:layout_width="@dimen/gallery_image_button_width"
+        android:layout_height="@dimen/gallery_image_button_height"
         android:layout_marginTop="10dp"
         android:layout_marginEnd="5dp"
-        android:onClick="cancelButton"
+        android:clickable="true"
+        android:onClick="okButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
-
-    <ImageView
-        android:id="@+id/deleteBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="15dp"
-        android:onClick="deleteImagesButton"
-        app:layout_constraintEnd_toStartOf="@id/cancelBtn"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_delete" />
-
-    <ImageView
-        android:id="@+id/saveBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="15dp"
-        android:onClick="saveButton"
-        app:layout_constraintEnd_toStartOf="@+id/deleteBtn"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_save" />
+        app:srcCompat="@drawable/ic_ok_image" />
 
     <ImageView
         android:id="@+id/addBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="15dp"
+        android:layout_marginEnd="30dp"
         android:onClick="addImageButton"
-        app:layout_constraintEnd_toStartOf="@+id/saveBtn"
+        app:layout_constraintEnd_toStartOf="@+id/okBtn"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_add" />
+        app:srcCompat="@drawable/ic_add_image" />
+
+    <ImageView
+        android:id="@+id/deleteBtn"
+        android:layout_width="@dimen/gallery_image_button_width"
+        android:layout_height="@dimen/gallery_image_button_height"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="30dp"
+        android:onClick="deleteImagesButton"
+        app:layout_constraintEnd_toStartOf="@+id/addBtn"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_delete_image" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

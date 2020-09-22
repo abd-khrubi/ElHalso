@@ -23,7 +23,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     private ArrayList<String> gallery;
     private boolean selecting;
     private boolean isEditMode;
-    private ArrayList<Integer> selectedImages;
+    private ArrayList<String> selectedImages;
     private ArrayList<Integer> imagesOrder;
     private StartDragListener startDragListener;
 
@@ -40,7 +40,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
             imagesOrder.add(i);
     }
 
-    public ArrayList<Integer> getSelectedImages() {
+    public ArrayList<String> getSelectedImages() {
         return selectedImages;
     }
 
@@ -73,7 +73,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 //        final int imageIndex = imagesOrder.get(position);
 
         holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
-        holder.selectedBox.setChecked(selectedImages.contains(position));
+        holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
         // todo: set gallery image
         holder.imageView.setBackgroundColor(Color.parseColor(gallery.get(position).split("\\.")[0]));
         holder.textView.setText(gallery.get(position).split("\\.")[1]);
@@ -82,8 +82,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
             @Override
             public void onClick(View v) {
                 if(selecting) {
-                    if(selectedImages.contains(position)){
-                        selectedImages.remove(selectedImages.indexOf(position));
+                    if(selectedImages.contains(gallery.get(position))){
+                        selectedImages.remove(gallery.get(position));
                         holder.selectedBox.setChecked(false);
                         if(selectedImages.isEmpty()){
                             triggerSelecting();
@@ -91,7 +91,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                         }
                     }
                     else {
-                        selectedImages.add(position);
+                        selectedImages.add(gallery.get(position));
                         holder.selectedBox.setChecked(true);
                     }
                     notifyItemChanged(position);
@@ -115,7 +115,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                     startDragListener.requestDrag(holder);
                     return true;
                 }
-                selectedImages.add(position);
+                selectedImages.add(gallery.get(position));
                 triggerSelecting();
                 return true;
             }

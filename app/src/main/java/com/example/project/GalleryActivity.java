@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -39,7 +40,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         galleryRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMNS_COUNT));
         touchHelper.attachToRecyclerView(galleryRecyclerView);
 
-        findViewById(R.id.saveBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
         findViewById(R.id.deleteBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
         findViewById(R.id.addBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
     }
@@ -53,27 +53,16 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         // todo: show dialog?
         gallery.removeAll(adapter.getSelectedImages());
         adapter.notifyDataSetChanged();
-
-//        Intent backIntent = new Intent();
-//        backIntent.putExtra("images_to_delete", adapter.getSelectedImages());
-//        setResult(RESULT_OK, backIntent);
-//        finish();
     }
 
     public void addImageButton(View view) {
         // todo: update newImages arraylist
     }
 
-    public void saveButton(View view){
-
-        // todo: upload new images
+    public void okButton(View view) {
         Intent backIntent = new Intent();
         backIntent.putStringArrayListExtra("gallery", gallery);
         setResult(RESULT_OK, backIntent);
-        finish();
-    }
-
-    public void cancelButton(View view) {
         finish();
     }
 
@@ -87,7 +76,10 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             adapter.triggerSelecting();
         }
         else {
-            super.onBackPressed();
+            Intent backIntent = new Intent();
+            backIntent.putStringArrayListExtra("gallery", gallery);
+            setResult(RESULT_OK, backIntent);
+            finish();
         }
     }
 

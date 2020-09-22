@@ -144,6 +144,10 @@ public class Business implements Parcelable {
         gallery.remove(image);
     }
 
+    public void setGallery(ArrayList<String> gallery) {
+        this.gallery = gallery;
+    }
+
     @Override
     public int describeContents() {
         return 0;
