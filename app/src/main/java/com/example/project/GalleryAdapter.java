@@ -1,10 +1,12 @@
 package com.example.project;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.Image;
+import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.DragEvent;
@@ -14,8 +16,11 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,28 +31,28 @@ import java.util.Collections;
 public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements ImageMoveCallback.ImageTouchHelperContract{
     private static final float FULL_ALPHA = 1.0f;
     private static final float SELECTED_ALPHA = 0.7f;
-    private ImageDrawer drawer;
+
+    private Context context;
     private ArrayList<String> gallery;
     private boolean selecting;
     private boolean isEditMode;
     private ArrayList<String> selectedImages;
-    private ArrayList<Integer> imagesOrder;
     private StartDragListener startDragListener;
     private File galleryFolder;
 
     private static final String TAG = "GalleryAdapter";
 
-    public GalleryAdapter(ImageDrawer drawer, ArrayList<String> gallery, File galleryFolder, boolean isEditMode, StartDragListener startDragListener){
-        this.drawer = drawer;
+    private static final int IMAGE_HEIGHT = 125;
+    private static final int IMAGE_WIDTH = 125;
+
+    public GalleryAdapter(Context context, ArrayList<String> gallery, File galleryFolder, boolean isEditMode, StartDragListener startDragListener){
+        this.context = context;
         this.gallery = gallery;
         this.galleryFolder = galleryFolder;
         this.selectedImages = new ArrayList<>();
         this.selecting = false;
         this.isEditMode = isEditMode;
         this.startDragListener = startDragListener;
-        this.imagesOrder = new ArrayList<>();
-        for(int i=0;i<gallery.size();i++)
-            imagesOrder.add(i);
     }
 
     public ArrayList<String> getSelectedImages() {
@@ -80,17 +85,18 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     public void onBindViewHolder(@NonNull final ImageHolder holder, final int position) {
         if(position >= gallery.size())
             return;
-//        final int imageIndex = imagesOrder.get(position);
 
         holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
         holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
-        // todo: set gallery image
+
         if(gallery.get(position).charAt(0) == '#'){
+            holder.imageView.setImageBitmap(null);
             holder.imageView.setBackgroundColor(Color.parseColor(gallery.get(position).split("\\.")[0]));
             holder.textView.setText(gallery.get(position).split("\\.")[1]);
         }
         else {
-            drawer.drawImage(holder, galleryFolder, gallery.get(position));
+            File file = new File(galleryFolder, gallery.get(position));
+            Picasso.get().load(Uri.fromFile(file)).resize(IMAGE_WIDTH, IMAGE_HEIGHT).into(holder.imageView);
         }
 
         View.OnClickListener clickListener = new View.OnClickListener() {
@@ -99,7 +105,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                 if(selecting) {
                     if(selectedImages.contains(gallery.get(position))){
                         selectedImages.remove(gallery.get(position));
-                        holder.selectedBox.setChecked(false);
                         if(selectedImages.isEmpty()){
                             triggerSelecting();
                             return;
@@ -107,13 +112,18 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                     }
                     else {
                         selectedImages.add(gallery.get(position));
-                        holder.selectedBox.setChecked(true);
                     }
                     notifyItemChanged(position);
                     return;
                 }
                 // todo: view image
-                Log.d(TAG, "viewing image " + gallery.get(position) + "at adapter " + (position + 1));
+                Log.d(TAG, "viewing image " + gallery.get(position) + " at adapter " + (position + 1));
+                if(gallery.get(position).charAt(0) != '#'){
+                    Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    context.startActivity(intent);
+                }
             }
         };
 

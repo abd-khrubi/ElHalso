@@ -270,7 +270,6 @@ public class FirebaseHandler {
                     Log.d(TAG, "file uploaded successfully");
                     business.addImage(name);
                     objectToUpdate = name;
-                    business.addImage(name);
                     updateBusinessGallery(business);
                 }
                 else {

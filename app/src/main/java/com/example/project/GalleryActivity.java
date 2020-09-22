@@ -40,7 +40,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.logging.FileHandler;
 
-public class GalleryActivity extends AppCompatActivity implements  StartDragListener,ImageDrawer {
+public class GalleryActivity extends AppCompatActivity implements  StartDragListener {
 
     private boolean isEditable;
     private RecyclerView galleryRecyclerView;
@@ -209,10 +209,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
                     copyImageToAppFolder(business, imageList.get(idx), imageName);
                     gallery.add(imageName);
                     adapter.notifyDataSetChanged();
-                } catch (FileNotFoundException e) {
-                    Log.e(TAG, e.toString());
-                    gallery.add(imageName);
-                    adapter.notifyDataSetChanged();
                 } catch (Exception e){
                     Log.e(TAG, e.toString());
                 }
@@ -231,83 +227,29 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         if(file.exists()){
             return;
         }
-//        if(file.exists()){
-//            return;
-//        }
-//        OutputStream out;
-//        try {
-//            file.createNewFile();
-//            out = new FileOutputStream(file);
-//        } catch (Exception e){
-//            Log.e(TAG, e.toString());
-//            return;
-//        }
-//        out.write(data);
-//        out.close();
 
         InputStream input = getContentResolver().openInputStream(imageUri);
-        OutputStream output = new FileOutputStream(file);
         Files.copy(input, file.toPath());
-
-//        FileUtils.copy(input, output);
+        input.close();
     }
 
-//    private String getRealPathFromURI(Uri contentUri) {
-//
-//        String[] proj = { MediaStore.Video.Media.DATA };
-//        Cursor cursor = managedQuery(contentUri, proj, null, null, null);
-//        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-//        cursor.moveToFirst();
-//        return cursor.getString(column_index);
-//    }
-
-//    private String getRealPathFromURI(Uri contentURI) {
-//        String result;
-//        Cursor cursor = getContentResolver().query(contentURI, null, null, null, null);
-//        if (cursor == null) {
-//            result = contentURI.getPath();
-//        } else {
-//            cursor.moveToFirst();
-//            int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-//            result = cursor.getString(idx);
-//            cursor.close();
+//    @Override
+//    public void drawImage(ImageHolder holder, File galleryFolder, String image) {
+//        Bitmap bitmap = null;
+//        File imageFile = new File(galleryFolder, image);
+//        if(!imageFile.exists()) {
+//            Log.d(TAG, "file doesnt exists.");
+//            return;
 //        }
-//        return result;
+//
+//        try {
+//            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.fromFile(imageFile));
+//            int width = (int) getResources().getDimension(R.dimen.gallery_image_width);
+//            int height = (int) getResources().getDimension(R.dimen.gallery_image_height);
+//            bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+//            holder.imageView.setImageBitmap(bitmap);
+//        } catch (Exception e) {
+//            Log.d(TAG, e.toString());
+//        }
 //    }
-
-//    public String getRealPathFromURI(Uri contentUri)
-//    {
-//        String[] proj = { MediaStore.Audio.Media.DATA };
-//        Cursor cursor = managedQuery(contentUri, proj, null, null, null);
-//        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-//        cursor.moveToFirst();
-//        return cursor.getString(column_index);
-//    }
-
-    public String getRealPathFromURI(Uri uri) {
-        String[] projection = { MediaStore.Images.Media.DATA };
-        Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
-        startManagingCursor(cursor);
-        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-        return cursor.getString(column_index);
-    }
-
-    @Override
-    public void drawImage(ImageHolder holder, File galleryFolder, String image) {
-        Bitmap bitmap = null;
-        File imageFile = new File(galleryFolder, image);
-        if(!imageFile.exists()) {
-            Log.d(TAG, "file doesnt exists.");
-            return;
-        }
-
-        try {
-            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.fromFile(imageFile));
-            bitmap = Bitmap.createScaledBitmap(bitmap,holder.imageView.getWidth(), holder.imageView.getHeight(), true);
-            holder.imageView.setImageBitmap(bitmap);
-        } catch (Exception e) {
-            Log.d(TAG, e.toString());
-        }
-    }
 }
