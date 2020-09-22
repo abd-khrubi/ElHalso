@@ -255,15 +255,22 @@ public class FirebaseHandler {
         });
     }
 
-    public void addImageToBusinessGallery(final Business business, Uri image, final String imageName){
-        // ToDo: make sure image name does not already exist (except when its 'logo')
+    public void addImageToBusinessGallery(final Business business, Uri image, String imageName){
+        // ToDo: make better sure image name does not already exist (except when its 'logo')
+        if(business.getGallery().contains(imageName)){
+            int idx = imageName.lastIndexOf('.');
+            imageName = imageName.substring(0,idx) + "_1" + imageName.substring(idx);
+        }
+        final String name = imageName;
         // adding image to storage
         storage.getReference().child(business.getId() + "/" + imageName).putFile(image).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                 if(task.isSuccessful()){
                     Log.d(TAG, "file uploaded successfully");
-                    business.addImage(imageName);
+                    business.addImage(name);
+                    objectToUpdate = name;
+                    business.addImage(name);
                     updateBusinessGallery(business);
                 }
                 else {
@@ -271,8 +278,25 @@ public class FirebaseHandler {
                 }
             }
         });
-
     }
+
+//    public void addImagesToBusinessGallery(final Business business, ArrayList<Uri> images, final String imageName){
+//        // ToDo: make sure images name does not already exist (except when its 'logo')
+//        // adding image to storage
+//        storage.getReference().child(business.getId() + "/" + imageName).putFile(image).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+//            @Override
+//            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+//                if(task.isSuccessful()){
+//                    Log.d(TAG, "file uploaded successfully");
+//                    business.addImage(imageName);
+//                    updateBusinessGallery(business);
+//                }
+//                else {
+//                    Log.d(TAG, "failed to upload file");
+//                }
+//            }
+//        });
+//    }
 
     public void deleteImageForBusiness(final Business business, final String image){
         storage.getReference().child(business.getId() + "/" + image).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -326,7 +350,6 @@ public class FirebaseHandler {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()) {
-                    objectToUpdate = business;
                     updateDone.postValue(true);
                 }
                 else {

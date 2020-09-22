@@ -1,8 +1,11 @@
 package com.example.project;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.media.Image;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.LayoutInflater;
@@ -14,23 +17,30 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 
 public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements ImageMoveCallback.ImageTouchHelperContract{
     private static final float FULL_ALPHA = 1.0f;
     private static final float SELECTED_ALPHA = 0.7f;
+    private ImageDrawer drawer;
     private ArrayList<String> gallery;
     private boolean selecting;
     private boolean isEditMode;
     private ArrayList<String> selectedImages;
     private ArrayList<Integer> imagesOrder;
     private StartDragListener startDragListener;
+    private File galleryFolder;
 
     private static final String TAG = "GalleryAdapter";
 
-    public GalleryAdapter(ArrayList<String> gallery, boolean isEditMode, StartDragListener startDragListener){
+    public GalleryAdapter(ImageDrawer drawer, ArrayList<String> gallery, File galleryFolder, boolean isEditMode, StartDragListener startDragListener){
+        this.drawer = drawer;
         this.gallery = gallery;
+        this.galleryFolder = galleryFolder;
         this.selectedImages = new ArrayList<>();
         this.selecting = false;
         this.isEditMode = isEditMode;
@@ -75,8 +85,13 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
         holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
         // todo: set gallery image
-        holder.imageView.setBackgroundColor(Color.parseColor(gallery.get(position).split("\\.")[0]));
-        holder.textView.setText(gallery.get(position).split("\\.")[1]);
+        if(gallery.get(position).charAt(0) == '#'){
+            holder.imageView.setBackgroundColor(Color.parseColor(gallery.get(position).split("\\.")[0]));
+            holder.textView.setText(gallery.get(position).split("\\.")[1]);
+        }
+        else {
+            drawer.drawImage(holder, galleryFolder, gallery.get(position));
+        }
 
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override

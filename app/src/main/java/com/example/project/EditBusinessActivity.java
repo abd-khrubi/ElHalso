@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class EditBusinessActivity extends AppCompatActivity {
@@ -74,6 +75,10 @@ public class EditBusinessActivity extends AppCompatActivity {
     public void editGalleryButton(View view) {
         Intent intent = new Intent(this, GalleryActivity.class);
         intent.putExtra("mode", "editable");
+        File galleryFolder = new File(getFilesDir(), business.getId());
+        if(!galleryFolder.exists())
+            galleryFolder.mkdir();
+        intent.putExtra("gallery_folder", galleryFolder.getAbsolutePath());
         intent.putExtra("gallery", business.getGallery());
 
         startActivityForResult(intent, RC_EDIT_GALLERY);
