@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
 import com.google.common.io.Files;
 
@@ -22,42 +23,47 @@ public class BusinessActivity extends AppCompatActivity {
 
     private RecyclerView galleryRecyclerView;
     private GalleryAdapter adapter;
-    private ArrayList<String> gallery;
     private File galleryFolder;
     private boolean ownedBusiness;
 
     private static final int RC_EDIT_BUSINESS = 974;
+
+    private static final String TAG = "BusinessActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_business);
         setupBusiness(getIntent());
-        business = ((AppLoader) getApplicationContext()).getBusiness();
         if(business != null)
             downloadImages(0);
 
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
-        galleryFolder = new File(getIntent().getStringExtra("gallery_folder"));
-        adapter = new GalleryAdapter(this, gallery, galleryFolder, false, null);
+        adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, false, null);
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
     }
 
     private void setupBusiness(Intent intent){
         if(intent == null || !intent.hasExtra("business")) {
-            business = (Business) getIntent().getParcelableExtra("business");
-            ownedBusiness = false;
-        }
-        else {
             business = ((AppLoader) getApplicationContext()).getBusiness();
             ownedBusiness = true;
         }
-        gallery = business.getGallery();
-        galleryFolder = new File(getFilesDir(), business.getId());
-        if(galleryFolder.exists()) {
-//            galleryFolder.createTempDir();
+        else {
+            business = getIntent().getParcelableExtra("business");
+            ownedBusiness = false;
         }
+
+        if(ownedBusiness) {
+            galleryFolder = new File(getFilesDir(), business.getId());
+            if(!galleryFolder.exists()){
+                galleryFolder.mkdir();
+            }
+        }
+        else {
+            galleryFolder = Files.createTempDir();
+        }
+        findViewById(R.id.editBtn).setVisibility(ownedBusiness ? View.VISIBLE : View.GONE);
     }
 
     public void editBusiness(View view) {
@@ -68,16 +74,16 @@ public class BusinessActivity extends AppCompatActivity {
     private void downloadImages(final int idx) {
         if(idx >= business.getGallery().size())
             return;
-        Log.d("BusinessActivity", "starting downloading image " + idx);
+        Log.d(TAG, "starting downloading image " + idx);
         FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
         final LiveData<Boolean> downloadDone = firebaseHandler.getUpdate();
-        firebaseHandler.fetchImageForBusiness(business, business.getGallery().get(idx), getFilesDir());
+        firebaseHandler.fetchImageForBusiness(business, business.getGallery().get(idx), galleryFolder, !ownedBusiness);
         downloadDone.observe(this, new Observer<Boolean>() {
             @Override
             public void onChanged(Boolean aBoolean) {
                 if(!aBoolean)
                     return;
-                Log.d("BusinessActivity", "finished downloading image " + idx);
+                Log.d(TAG, "finished downloading image " + idx);
                 downloadDone.removeObserver(this);
                 downloadImages(idx+1);
             }

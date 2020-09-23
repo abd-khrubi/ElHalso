@@ -313,27 +313,32 @@ public class FirebaseHandler {
         });
     }
 
-    public void fetchImageForBusiness(Business business, String image, File appDir) {
+    public void fetchImageForBusiness(Business business, String image, File downloadDir, boolean isTemp) {
         if(image.charAt(0) == '#') {
             updateDone.postValue(true);
             return;
         }
-        File folder = new File(appDir, business.getId());
-        if(!folder.exists()) {
-            folder.mkdir();
-        }
-        final File localFile = new File(folder, image);
-        if(localFile.exists()){
+
+        File localFile = null;
+        try {
+            if (isTemp) {
+                int idx = image.lastIndexOf('.');
+                localFile = downloadDir.createTempFile(image.substring(0, idx), image.substring(idx + 1));
+            } else {
+                localFile = new File(downloadDir, image);
+            }
+            if(localFile.exists()){
+                Log.d(TAG, "file already exists");
+                updateDone.postValue(true);
+                return;
+            }
+        }catch(Exception e){
+            Log.e(TAG, "Failed to create file.");
+            Log.e(TAG, e.toString());
             updateDone.postValue(true);
             return;
         }
 
-        try {
-            localFile.createNewFile();
-        } catch (IOException e) {
-            Log.d(TAG, "failed to create file");
-            Log.d(TAG, e.toString());
-        }
         storage.getReference().child(business.getId() + "/" + image).getFile(localFile).addOnCompleteListener(new OnCompleteListener<FileDownloadTask.TaskSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<FileDownloadTask.TaskSnapshot> task) {
