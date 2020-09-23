@@ -65,12 +65,13 @@
       app:layout_constraintStart_toStartOf="@+id/statsTxt"
       app:layout_constraintTop_toBottomOf="@+id/statsTEMP" />
 
-  <TextView
-      android:id="@+id/imagesTEMP"
-      android:layout_width="wrap_content"
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/galleryRecyclerView"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_marginTop="40dp"
-      android:text="IMAGES"
+      android:layout_marginEnd="5dp"
+      app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="@+id/galleryTxt"
       app:layout_constraintTop_toBottomOf="@+id/galleryTxt" />
 
