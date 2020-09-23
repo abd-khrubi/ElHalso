@@ -157,35 +157,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             }
             uploadImages(business, imageList, 0);
         }
-//                Bitmap bitmap1 = null, bitmap2 = null;
-
-//                bitmap2 = Bitmap.createScaledBitmap(bitmap2,150, 150, tru//                try {
-////                    bitmap1 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageList.get(0));
-////                    bitmap2 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageList.get(1));
-////                } catch (IOException e) {
-////                    e.printStackTrace();
-////                }
-////                bitmap1 = Bitmap.createScaledBitmap(bitmap1,150, 150, true);
-////                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap1);e);
-//                ((ImageButton)findViewById(R.id.tempImg2)).setImageBitmap(bitmap2);
-
-//            else if(data.getData() != null){
-//                Uri uri = data.getData();
-////                FirebaseHandler.getInstance().addImageToBusinessGallery(new Business(), uri, "image2.jpg");
-//                Log.d(TAG, uri.getLastPathSegment());
-//                Log.d(TAG, uri.getPath());
-//                Log.d(TAG, DocumentFile.fromSingleUri(this, uri).getName());
-////                Bitmap bitmap= BitmapFactory.decodeFile(uri.getPath());
-//                Bitmap bitmap = null;
-//                try {
-//                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                bitmap = Bitmap.createScaledBitmap(bitmap,((ImageButton)findViewById(R.id.tempImg)).getWidth(), ((ImageButton)findViewById(R.id.tempImg)).getHeight(), true);
-//                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap);
-////                ((ImageButton)findViewById(R.id.tempImg)).setImageURI(uri);
-//            }
     }
 
     // todo: make it on another thread?

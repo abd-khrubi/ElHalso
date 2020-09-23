@@ -314,6 +314,10 @@ public class FirebaseHandler {
     }
 
     public void fetchImageForBusiness(Business business, String image, File appDir) {
+        if(image.charAt(0) == '#') {
+            updateDone.postValue(true);
+            return;
+        }
         File folder = new File(appDir, business.getId());
         if(!folder.exists()) {
             folder.mkdir();
@@ -339,6 +343,7 @@ public class FirebaseHandler {
                 }
                 else {
                     Log.d(TAG, "image failed to download");
+                    updateDone.postValue(true);
                 }
             }
         });

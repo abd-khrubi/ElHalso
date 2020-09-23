@@ -26,6 +26,7 @@ public class EditBusinessActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("EditBusiness", "in edit");
         setContentView(R.layout.activity_edit_business);
         business = ((AppLoader) getApplicationContext()).getBusiness();
         fillInBusinessDetails(savedInstanceState);
