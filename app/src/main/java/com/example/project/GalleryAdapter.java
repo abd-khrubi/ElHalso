@@ -20,11 +20,15 @@ import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.common.io.Files;
 import com.squareup.picasso.Picasso;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -41,9 +45,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     private File galleryFolder;
 
     private static final String TAG = "GalleryAdapter";
-
-    private static final int IMAGE_HEIGHT = 125;
-    private static final int IMAGE_WIDTH = 125;
 
     public GalleryAdapter(Context context, ArrayList<String> gallery, File galleryFolder, boolean isEditMode, StartDragListener startDragListener){
         this.context = context;
@@ -95,8 +96,12 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
             holder.textView.setText(gallery.get(position).split("\\.")[1]);
         }
         else {
-            File file = new File(galleryFolder, gallery.get(position));
-            Picasso.get().load(Uri.fromFile(file)).resize(IMAGE_WIDTH, IMAGE_HEIGHT).into(holder.imageView);
+//            File file = new File(galleryFolder, gallery.get(position));
+//            Picasso.get().load(Uri.fromFile(file)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height).into(holder.imageView);
+//            FirebaseHandler.getInstance().fetchImageForBusinessIntoImageHolder(context, new Business("mpjMmySxxydICDPTlZ4k"), gallery.get(position), holder);
+            Log.d(TAG, "gallery image: " + gallery.get(position));
+            Picasso.get().load(gallery.get(position)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height)
+                    .onlyScaleDown().placeholder(R.drawable.ic_action_syncing).into(holder.imageView);
         }
 
         View.OnClickListener clickListener = new View.OnClickListener() {
@@ -116,14 +121,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                     notifyItemChanged(position);
                     return;
                 }
-                // todo: view image
-                Log.d(TAG, "viewing image " + gallery.get(position) + " at adapter " + (position + 1));
-                if(gallery.get(position).charAt(0) != '#'){
-                    Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
-                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    context.startActivity(intent);
-                }
+                viewImageInDefaultViewer(position);
             }
         };
 
@@ -145,6 +143,55 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                 return true;
             }
         });
+    }
+
+    private void viewImageInDefaultViewer(int position) {
+        // todo: view image
+        Log.d(TAG, "viewing image " + gallery.get(position) + " at adapter " + (position + 1));
+        if(gallery.get(position).charAt(0) != '#'){
+//            Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
+//            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//            context.startActivity(intent);
+
+
+            // pulling image from picasso cache
+            final String CACHE_PATH = context.getCacheDir().getAbsolutePath() + "/picasso-cache/";
+            File[] files = new File(CACHE_PATH).listFiles();
+            for (File file:files)
+            {
+                String fname= file.getName();
+                if (fname.contains(".") && fname.substring(fname.lastIndexOf(".")).equals(".0"))
+                {
+                    try
+                    {
+                        BufferedReader br = new BufferedReader(new FileReader(file));
+                        if (br.readLine().equals(gallery.get(position)))
+                        {
+
+                            String image_path =  CACHE_PATH + fname.replace(".0", ".1");
+                            File curFile = new File(image_path);
+                            if (curFile.exists())
+                            {
+                                File tempImage = File.createTempFile("toview", ".jpg");
+                                if(!tempImage.exists())
+                                    tempImage.createNewFile();
+                                tempImage.deleteOnExit();
+                                Files.copy(curFile, tempImage);
+                                Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", tempImage);
+                                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                context.startActivity(intent);
+                            }
+                        }
+                    }
+                    catch (IOException e)
+                    {
+                        Log.e(TAG, "Failed to read/copy image from cache");
+                    }
+                }
+            }
+        }
     }
 
     @Override

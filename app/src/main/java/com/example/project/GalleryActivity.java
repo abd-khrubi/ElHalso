@@ -159,6 +159,12 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         }
     }
 
+//    public void uploadImages(final Business business, final ArrayList<Uri> imageList, final int idx) {
+//        FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
+//        final String imageName = DocumentFile.fromSingleUri(this, imageList.get(idx)).getName();
+//        firebaseHandler.addImageToBusinessGallery(business, imageList.get(idx), imageName);
+//    }
+
     // todo: make it on another thread?
     public void uploadImages(final Business business, final ArrayList<Uri> imageList, final int idx){
         if(idx >= imageList.size())
@@ -175,15 +181,18 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
                     return;
                 updateDone.removeObserver(this);
                 //todo: copy to app folder
+//                String imageName = (String) FirebaseHandler.getInstance().getUpdatedObject();
+//                try {
+//                    copyImageToAppFolder(business, imageList.get(idx), imageName);
+//                    gallery.add(imageName);
+//                    adapter.notifyDataSetChanged();
+//                } catch (Exception e){
+//                    Log.e(TAG, e.toString());
+//                }
+//                Log.d(TAG, "image <" + imageName + "> uploaded");
                 String imageName = (String) FirebaseHandler.getInstance().getUpdatedObject();
-                try {
-                    copyImageToAppFolder(business, imageList.get(idx), imageName);
-                    gallery.add(imageName);
-                    adapter.notifyDataSetChanged();
-                } catch (Exception e){
-                    Log.e(TAG, e.toString());
-                }
-                Log.d(TAG, "image <" + imageName + "> uploaded");
+                gallery.add(imageName);
+                adapter.notifyDataSetChanged();
                 uploadImages(business, imageList, idx+1);
             }
         });

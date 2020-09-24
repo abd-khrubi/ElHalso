@@ -35,9 +35,10 @@ public class BusinessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_business);
         setupBusiness(getIntent());
-        if(business != null)
-            downloadImages(0);
+//        if(business != null)
+//            downloadImages(0);
 
+        Log.d(TAG, "in " + business.getId());
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
         adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, false, null);
         galleryRecyclerView.setAdapter(adapter);

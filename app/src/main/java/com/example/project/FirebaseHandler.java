@@ -1,5 +1,6 @@
 package com.example.project;
 
+import android.content.Context;
 import android.location.Location;
 import android.net.Uri;
 import android.util.Log;
@@ -9,6 +10,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
@@ -23,6 +25,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.ListResult;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
@@ -263,17 +266,28 @@ public class FirebaseHandler {
         }
         final String name = imageName;
         // adding image to storage
-        storage.getReference().child(business.getId() + "/" + imageName).putFile(image).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+        final StorageReference ref = storage.getReference().child(business.getId() + "/" + imageName);
+        ref.putFile(image).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
             @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                if(task.isSuccessful()){
-                    Log.d(TAG, "file uploaded successfully");
-                    business.addImage(name);
-                    objectToUpdate = name;
-                    updateBusinessGallery(business);
+            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
                 }
-                else {
-                    Log.d(TAG, "failed to upload file");
+
+                // Continue with the task to get the download URL
+                return ref.getDownloadUrl();
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if (task.isSuccessful()) {
+                    Uri downloadUri = task.getResult();
+                    business.addImage(downloadUri.toString());
+                    objectToUpdate = downloadUri.toString();
+                    updateBusinessGallery(business);
+                } else {
+                    // Handle failures
+                    // ...
                 }
             }
         });
@@ -281,6 +295,10 @@ public class FirebaseHandler {
 
 //    public void addImagesToBusinessGallery(final Business business, ArrayList<Uri> images, final String imageName){
 //        // ToDo: make sure images name does not already exist (except when its 'logo')
+//        if(business.getGallery().contains(imageName)){
+//            int idx = imageName.lastIndexOf('.');
+//            imageName = imageName.substring(0,idx) + "_1" + imageName.substring(idx);
+//        }
 //        // adding image to storage
 //        storage.getReference().child(business.getId() + "/" + imageName).putFile(image).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
 //            @Override
@@ -311,6 +329,26 @@ public class FirebaseHandler {
                 }
             }
         });
+    }
+
+    public void fetchImageForBusinessIntoImageHolder(Context context, Business business, final String image, final ImageHolder holder) {
+        StorageReference ref = storage.getReference().child(business.getId() + "/" + image);
+        storage.getReference().child(business.getId() + "/" + image).getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if(task.isSuccessful()){
+                    Log.d(TAG, "image <" + image + "> downloaded successfully");
+                    Log.d(TAG, task.getResult().toString());
+                    Picasso.get().load(task.getResult()).placeholder(R.drawable.ic_action_syncing).into(holder.imageView);
+                }
+                else {
+                    Log.d(TAG, "image failed to download");
+                }
+                updateDone.postValue(true);
+            }
+        });
+//        StorageReference ref = storage.getReference().child(business.getId() + "/" + image);
+//        Glide.with(context).load(ref).into(holder.imageView);
     }
 
     public void fetchImageForBusiness(Business business, String image, File downloadDir, boolean isTemp) {
