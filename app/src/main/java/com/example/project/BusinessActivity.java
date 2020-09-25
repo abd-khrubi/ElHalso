@@ -17,7 +17,7 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.util.ArrayList;
 
-public class BusinessActivity extends AppCompatActivity {
+public class BusinessActivity extends AppCompatActivity implements ImageDownloader.DownloadCallback {
 
     private Business business;
 
@@ -43,6 +43,14 @@ public class BusinessActivity extends AppCompatActivity {
         adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, false, null);
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
+
+        downloadImages();
+    }
+
+    private void downloadImages() {
+        for(String image : business.getGallery()){
+            ImageDownloader.getImage(image, business.getId(), !ownedBusiness, galleryFolder, this);
+        }
     }
 
     private void setupBusiness(Intent intent){
@@ -63,6 +71,7 @@ public class BusinessActivity extends AppCompatActivity {
         }
         else {
             galleryFolder = Files.createTempDir();
+            galleryFolder.deleteOnExit();
         }
         findViewById(R.id.editBtn).setVisibility(ownedBusiness ? View.VISIBLE : View.GONE);
     }
@@ -87,6 +96,19 @@ public class BusinessActivity extends AppCompatActivity {
                 Log.d(TAG, "finished downloading image " + idx);
                 downloadDone.removeObserver(this);
                 downloadImages(idx+1);
+            }
+        });
+    }
+
+    @Override
+    public synchronized void onImageDownloaded(String businessID, final String imageName) {
+        if(!business.getId().equals(businessID))
+            return;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.addDownloadedImage(imageName);
             }
         });
     }

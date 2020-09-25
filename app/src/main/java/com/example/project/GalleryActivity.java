@@ -40,7 +40,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.logging.FileHandler;
 
-public class GalleryActivity extends AppCompatActivity implements  StartDragListener {
+public class GalleryActivity extends AppCompatActivity implements  StartDragListener, ImageDownloader.DownloadCallback {
 
     private boolean isEditable;
     private RecyclerView galleryRecyclerView;
@@ -49,6 +49,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
     private ArrayList<String> gallery;
     private File galleryFolder;
     private ArrayList<String> newImages;
+    private String businessID;
 
     private static final int COLUMNS_COUNT = 4;
     private static final int RC_ADD_IMAGES = 497;
@@ -61,6 +62,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         setContentView(R.layout.activity_gallery);
         isEditable = getIntent().getStringExtra("mode").equals("editable");
         gallery = getIntent().getStringArrayListExtra("gallery");
+        businessID = getIntent().getStringExtra("businessID");
 
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
         galleryFolder = new File(getIntent().getStringExtra("gallery_folder"));
@@ -70,8 +72,16 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         galleryRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMNS_COUNT));
         touchHelper.attachToRecyclerView(galleryRecyclerView);
 
+        downloadImages();
+
         findViewById(R.id.deleteBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
         findViewById(R.id.addBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
+    }
+
+    private void downloadImages() {
+        for(String image : gallery){
+            ImageDownloader.getImage(image, businessID, !isEditable, galleryFolder, this);
+        }
     }
 
     public void deleteImagesButton(View view){
@@ -157,6 +167,35 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             }
             uploadImages(business, imageList, 0);
         }
+//                Bitmap bitmap1 = null, bitmap2 = null;
+
+//                bitmap2 = Bitmap.createScaledBitmap(bitmap2,150, 150, tru//                try {
+////                    bitmap1 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageList.get(0));
+////                    bitmap2 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageList.get(1));
+////                } catch (IOException e) {
+////                    e.printStackTrace();
+////                }
+////                bitmap1 = Bitmap.createScaledBitmap(bitmap1,150, 150, true);
+////                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap1);e);
+//                ((ImageButton)findViewById(R.id.tempImg2)).setImageBitmap(bitmap2);
+
+//            else if(data.getData() != null){
+//                Uri uri = data.getData();
+////                FirebaseHandler.getInstance().addImageToBusinessGallery(new Business(), uri, "image2.jpg");
+//                Log.d(TAG, uri.getLastPathSegment());
+//                Log.d(TAG, uri.getPath());
+//                Log.d(TAG, DocumentFile.fromSingleUri(this, uri).getName());
+////                Bitmap bitmap= BitmapFactory.decodeFile(uri.getPath());
+//                Bitmap bitmap = null;
+//                try {
+//                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                bitmap = Bitmap.createScaledBitmap(bitmap,((ImageButton)findViewById(R.id.tempImg)).getWidth(), ((ImageButton)findViewById(R.id.tempImg)).getHeight(), true);
+//                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap);
+////                ((ImageButton)findViewById(R.id.tempImg)).setImageURI(uri);
+//            }
     }
 
 //    public void uploadImages(final Business business, final ArrayList<Uri> imageList, final int idx) {
@@ -211,6 +250,19 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         InputStream input = getContentResolver().openInputStream(imageUri);
         Files.copy(input, file.toPath());
         input.close();
+    }
+
+    @Override
+    public void onImageDownloaded(String businessID, final String imageName) {
+        if(!this.businessID.equals(businessID))
+            return;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.addDownloadedImage(imageName);
+            }
+        });
     }
 
 //    @Override

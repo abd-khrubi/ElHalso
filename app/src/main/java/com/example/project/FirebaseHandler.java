@@ -352,11 +352,6 @@ public class FirebaseHandler {
     }
 
     public void fetchImageForBusiness(Business business, String image, File downloadDir, boolean isTemp) {
-        if(image.charAt(0) == '#') {
-            updateDone.postValue(true);
-            return;
-        }
-
         File localFile = null;
         try {
             if (isTemp) {
@@ -377,17 +372,17 @@ public class FirebaseHandler {
             return;
         }
 
+
         storage.getReference().child(business.getId() + "/" + image).getFile(localFile).addOnCompleteListener(new OnCompleteListener<FileDownloadTask.TaskSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<FileDownloadTask.TaskSnapshot> task) {
                 if(task.isSuccessful()){
                     Log.d(TAG, "image downloaded successfully");
-                    updateDone.postValue(true);
                 }
                 else {
                     Log.d(TAG, "image failed to download");
-                    updateDone.postValue(true);
                 }
+                updateDone.postValue(true);
             }
         });
     }

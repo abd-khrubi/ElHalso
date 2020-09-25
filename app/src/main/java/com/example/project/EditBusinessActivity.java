@@ -26,7 +26,6 @@ public class EditBusinessActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("EditBusiness", "in edit");
         setContentView(R.layout.activity_edit_business);
         business = ((AppLoader) getApplicationContext()).getBusiness();
         fillInBusinessDetails(savedInstanceState);
@@ -81,6 +80,7 @@ public class EditBusinessActivity extends AppCompatActivity {
             galleryFolder.mkdir();
         intent.putExtra("gallery_folder", galleryFolder.getAbsolutePath());
         intent.putExtra("gallery", business.getGallery());
+        intent.putExtra("businessID", business.getId());
 
         startActivityForResult(intent, RC_EDIT_GALLERY);
     }

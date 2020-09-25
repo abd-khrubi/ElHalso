@@ -32,12 +32,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements ImageMoveCallback.ImageTouchHelperContract{
+public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements ImageMoveCallback.ImageTouchHelperContract {
     private static final float FULL_ALPHA = 1.0f;
     private static final float SELECTED_ALPHA = 0.7f;
 
     private Context context;
     private ArrayList<String> gallery;
+    private ArrayList<String> downloadedGallery;
     private boolean selecting;
     private boolean isEditMode;
     private ArrayList<String> selectedImages;
@@ -54,6 +55,14 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         this.selecting = false;
         this.isEditMode = isEditMode;
         this.startDragListener = startDragListener;
+        this.downloadedGallery = new ArrayList<>();
+    }
+
+    public void addDownloadedImage(String imageName){
+        if(!downloadedGallery.contains(imageName))
+            downloadedGallery.add(imageName);
+        Log.d(TAG, "adding image " + imageName);
+        notifyItemChanged(gallery.indexOf(imageName));
     }
 
     public ArrayList<String> getSelectedImages() {
@@ -83,26 +92,24 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ImageHolder holder, final int position) {
+    public synchronized void onBindViewHolder(@NonNull final ImageHolder holder, final int position) {
         if(position >= gallery.size())
             return;
 
-        holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
-        holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
+        if(!downloadedGallery.contains(gallery.get(position)))
+            return;
 
-        if(gallery.get(position).charAt(0) == '#'){
-            holder.imageView.setImageBitmap(null);
-            holder.imageView.setBackgroundColor(Color.parseColor(gallery.get(position).split("\\.")[0]));
-            holder.textView.setText(gallery.get(position).split("\\.")[1]);
-        }
-        else {
-//            File file = new File(galleryFolder, gallery.get(position));
-//            Picasso.get().load(Uri.fromFile(file)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height).into(holder.imageView);
+        holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
+//        holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
+
+        File file = new File(galleryFolder, gallery.get(position));
+        if(!file.exists())
+            Log.d(TAG, "file does not exist o.o");
+        Log.d(TAG, "trying to draw " + gallery.get(position));
+        Picasso.get().load(Uri.fromFile(file)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height).into(holder.imageView);
 //            FirebaseHandler.getInstance().fetchImageForBusinessIntoImageHolder(context, new Business("mpjMmySxxydICDPTlZ4k"), gallery.get(position), holder);
-            Log.d(TAG, "gallery image: " + gallery.get(position));
-            Picasso.get().load(gallery.get(position)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height)
-                    .onlyScaleDown().placeholder(R.drawable.ic_action_syncing).into(holder.imageView);
-        }
+//            Picasso.get().load(gallery.get(position)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height)
+//                    .onlyScaleDown().placeholder(R.drawable.ic_action_syncing).into(holder.imageView);
 
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
@@ -148,50 +155,54 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     private void viewImageInDefaultViewer(int position) {
         // todo: view image
         Log.d(TAG, "viewing image " + gallery.get(position) + " at adapter " + (position + 1));
-        if(gallery.get(position).charAt(0) != '#'){
+        Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        context.startActivity(intent);
+//        if(gallery.get(position).charAt(0) != '#'){
 //            Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
 //            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 //            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 //            context.startActivity(intent);
-
-
-            // pulling image from picasso cache
-            final String CACHE_PATH = context.getCacheDir().getAbsolutePath() + "/picasso-cache/";
-            File[] files = new File(CACHE_PATH).listFiles();
-            for (File file:files)
-            {
-                String fname= file.getName();
-                if (fname.contains(".") && fname.substring(fname.lastIndexOf(".")).equals(".0"))
-                {
-                    try
-                    {
-                        BufferedReader br = new BufferedReader(new FileReader(file));
-                        if (br.readLine().equals(gallery.get(position)))
-                        {
-
-                            String image_path =  CACHE_PATH + fname.replace(".0", ".1");
-                            File curFile = new File(image_path);
-                            if (curFile.exists())
-                            {
-                                File tempImage = File.createTempFile("toview", ".jpg");
-                                if(!tempImage.exists())
-                                    tempImage.createNewFile();
-                                tempImage.deleteOnExit();
-                                Files.copy(curFile, tempImage);
-                                Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", tempImage);
-                                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                                context.startActivity(intent);
-                            }
-                        }
-                    }
-                    catch (IOException e)
-                    {
-                        Log.e(TAG, "Failed to read/copy image from cache");
-                    }
-                }
-            }
-        }
+//
+//
+//            // pulling image from picasso cache
+//            final String CACHE_PATH = context.getCacheDir().getAbsolutePath() + "/picasso-cache/";
+//            File[] files = new File(CACHE_PATH).listFiles();
+//            for (File file:files)
+//            {
+//                String fname= file.getName();
+//                if (fname.contains(".") && fname.substring(fname.lastIndexOf(".")).equals(".0"))
+//                {
+//                    try
+//                    {
+//                        BufferedReader br = new BufferedReader(new FileReader(file));
+//                        if (br.readLine().equals(gallery.get(position)))
+//                        {
+//
+//                            String image_path =  CACHE_PATH + fname.replace(".0", ".1");
+//                            File curFile = new File(image_path);
+//                            if (curFile.exists())
+//                            {
+//                                File tempImage = File.createTempFile("toview", ".jpg");
+//                                if(!tempImage.exists())
+//                                    tempImage.createNewFile();
+//                                tempImage.deleteOnExit();
+//                                Files.copy(curFile, tempImage);
+//                                Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", tempImage);
+//                                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+//                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+//                                context.startActivity(intent);
+//                            }
+//                        }
+//                    }
+//                    catch (IOException e)
+//                    {
+//                        Log.e(TAG, "Failed to read/copy image from cache");
+//                    }
+//                }
+//            }
+//        }
     }
 
     @Override
