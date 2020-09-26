@@ -2,6 +2,7 @@ package com.example.project;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -20,11 +21,15 @@ import java.util.ArrayList;
 public class EditBusinessActivity extends AppCompatActivity {
 
     private Business business;
-    private String logoName;
+    private Uri newLogoUri;
     private ImageButton logoImg;
     private EditText nameTxt;
     private EditText descriptionTxt;
+    private File galleryFolder;
+
     private static final int RC_EDIT_GALLERY = 481;
+    private static final int RC_CHANGE_LOGO = 543;
+    private static final String TAG = "EditBusinessActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +37,10 @@ public class EditBusinessActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_business);
         business = ((AppLoader) getApplicationContext()).getBusiness();
         fillInBusinessDetails(savedInstanceState);
-        Log.d("EditBus", business.getId());
+        galleryFolder = new File(getFilesDir(), business.getId());
+        if(!galleryFolder.exists())
+            galleryFolder.mkdir();
+        Log.d(TAG, business.getId());
     }
 
     private void fillInBusinessDetails(Bundle savedInstanceState){
@@ -40,7 +48,6 @@ public class EditBusinessActivity extends AppCompatActivity {
         nameTxt = (EditText) findViewById(R.id.nameTxt);
         descriptionTxt = (EditText) findViewById(R.id.descriptionTxt);
 
-        logoName = business.getLogo();
         if(savedInstanceState == null){
             // ToDo if rotation
             return;
@@ -49,8 +56,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         nameTxt.setText(business.getName() == null ? "" : business.getName());
         descriptionTxt.setText(business.getDescription() == null ? "" : business.getDescription());
         if(business.getLogo() != null) {
-            File galleryFolder = new File(getFilesDir(), business.getId());
-            File logo = new File(galleryFolder, logoName);
+            File logo = new File(galleryFolder, business.getLogo());
             Picasso.get().load(Uri.fromFile(logo)).fit().into(logoImg);
         }
     }
@@ -67,18 +73,30 @@ public class EditBusinessActivity extends AppCompatActivity {
 
         business.setName(nameTxt.getText().toString());
         business.setDescription(descriptionTxt.getText().toString());
-        business.setLogo(logoName);
-        // todo: update firebase
+        if(newLogoUri != null) {
+            if(business.getLogo() != null) {
+                File logo = new File(galleryFolder, business.getLogo());
+                logo.delete();
+            }
+            ImageUploader.addImageUpload(getApplicationContext(), business, newLogoUri, true, null);
+        }
+        finish();
     }
 
     public void changeLogoButton(View view) {
-        // todo: change image to picked image, copy to folder when saved
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent,"Select Picture"), RC_CHANGE_LOGO);
     }
 
     private boolean detailsChanged() {
+        String origDescription = business.getDescription() != null ? business.getDescription() : "";
         return !business.getName().equals(nameTxt.getText().toString())
-                && !business.getDescription().equals(descriptionTxt.getText().toString())
-                && (logoName == null || !business.getLogo().equals(logoName));
+                && origDescription.equals(descriptionTxt.getText().toString())
+                && (newLogoUri != null);
+//                && locationChanged;
+
     }
 
     private boolean validateDetails(){
@@ -97,9 +115,6 @@ public class EditBusinessActivity extends AppCompatActivity {
     public void editGalleryButton(View view) {
         Intent intent = new Intent(this, GalleryActivity.class);
         intent.putExtra("mode", "editable");
-        File galleryFolder = new File(getFilesDir(), business.getId());
-        if(!galleryFolder.exists())
-            galleryFolder.mkdir();
         intent.putExtra("gallery_folder", galleryFolder.getAbsolutePath());
         intent.putExtra("gallery", business.getGallery());
         intent.putExtra("businessID", business.getId());
@@ -126,6 +141,14 @@ public class EditBusinessActivity extends AppCompatActivity {
             }
             if(changed)
                 business.setGallery(newGallery);
+        }
+        else if(requestCode == RC_CHANGE_LOGO && resultCode == RESULT_OK) {
+            if (data.getClipData() != null) {
+                newLogoUri = data.getClipData().getItemAt(0).getUri();
+            } else if (data.getData() != null) {
+                newLogoUri = data.getData();
+            }
+            Picasso.get().load(newLogoUri).fit().into(logoImg);
         }
     }
 }

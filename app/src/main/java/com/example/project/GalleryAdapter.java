@@ -96,21 +96,15 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         if(position >= gallery.size())
             return;
 
+        holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
+
         if(!downloadedGallery.contains(gallery.get(position)))
             return;
 
-        holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
-//        holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
+        holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
 
         File file = new File(galleryFolder, gallery.get(position));
-        if(!file.exists())
-            Log.d(TAG, "file does not exist o.o");
-        Log.d(TAG, "trying to draw " + gallery.get(position));
-//        Picasso.get().load(Uri.fromFile(file)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height).onlyScaleDown().fit().into(holder.imageView);
         Picasso.get().load(Uri.fromFile(file)).fit().into(holder.imageView);
-//            FirebaseHandler.getInstance().fetchImageForBusinessIntoImageHolder(context, new Business("mpjMmySxxydICDPTlZ4k"), gallery.get(position), holder);
-//            Picasso.get().load(gallery.get(position)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height)
-//                    .onlyScaleDown().placeholder(R.drawable.ic_action_syncing).into(holder.imageView);
 
         View.OnClickListener clickListener = new View.OnClickListener() {
             @Override
@@ -160,50 +154,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(intent);
-//        if(gallery.get(position).charAt(0) != '#'){
-//            Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
-//            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-//            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//            context.startActivity(intent);
-//
-//
-//            // pulling image from picasso cache
-//            final String CACHE_PATH = context.getCacheDir().getAbsolutePath() + "/picasso-cache/";
-//            File[] files = new File(CACHE_PATH).listFiles();
-//            for (File file:files)
-//            {
-//                String fname= file.getName();
-//                if (fname.contains(".") && fname.substring(fname.lastIndexOf(".")).equals(".0"))
-//                {
-//                    try
-//                    {
-//                        BufferedReader br = new BufferedReader(new FileReader(file));
-//                        if (br.readLine().equals(gallery.get(position)))
-//                        {
-//
-//                            String image_path =  CACHE_PATH + fname.replace(".0", ".1");
-//                            File curFile = new File(image_path);
-//                            if (curFile.exists())
-//                            {
-//                                File tempImage = File.createTempFile("toview", ".jpg");
-//                                if(!tempImage.exists())
-//                                    tempImage.createNewFile();
-//                                tempImage.deleteOnExit();
-//                                Files.copy(curFile, tempImage);
-//                                Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", tempImage);
-//                                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-//                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//                                context.startActivity(intent);
-//                            }
-//                        }
-//                    }
-//                    catch (IOException e)
-//                    {
-//                        Log.e(TAG, "Failed to read/copy image from cache");
-//                    }
-//                }
-//            }
-//        }
     }
 
     @Override

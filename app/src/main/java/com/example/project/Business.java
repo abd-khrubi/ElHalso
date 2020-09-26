@@ -136,7 +136,8 @@ public class Business implements Parcelable {
 
     public void addImage(String image) {
         gallery = getGallery();
-        gallery.add(image);
+        if(!gallery.contains(image))
+            gallery.add(image);
     }
 
     public void removeImage(String image) {

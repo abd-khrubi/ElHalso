@@ -1,26 +1,22 @@
 package com.example.project;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.common.io.Files;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
-import java.util.ArrayList;
 
 public class BusinessActivity extends AppCompatActivity implements ImageDownloader.DownloadCallback {
 
@@ -52,7 +48,8 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     }
 
     private void downloadImages() {
-        ImageDownloader.getImage(business.getLogo(), business.getId(), !ownedBusiness, galleryFolder, this);
+        if(business.getLogo() != null)
+            ImageDownloader.getImage(business.getLogo(), business.getId(), !ownedBusiness, galleryFolder, this);
         for(String image : business.getGallery()){
             ImageDownloader.getImage(image, business.getId(), !ownedBusiness, galleryFolder, this);
         }
@@ -137,7 +134,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             @Override
             public void run() {
                 if(business.getLogo() != null && imageName.equals(business.getLogo())){
-                    ImageView image = findViewById(R.id.logoImg);
+                    ImageView image = findViewById(R.id.logoImgBtn);
                     File imageFile = new File(galleryFolder, imageName);
                     Picasso.get().load(Uri.fromFile(imageFile)).fit().into(image);
                     return;
@@ -145,5 +142,17 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
                 adapter.addDownloadedImage(imageName);
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(ownedBusiness)
+            return;
+        galleryFolder.delete();
+//        for(File image : galleryFolder.listFiles()){
+//            image.delete();
+//        }
+//        galleryFolder.delete();
     }
 }

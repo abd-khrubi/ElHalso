@@ -20,7 +20,6 @@ import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-// todo: currently for 1 business
 class ImageDownloader {
     public interface DownloadCallback{
         void onImageDownloaded(String businessID, String imageName);
@@ -42,7 +41,7 @@ class ImageDownloader {
         bgExecutor.execute(new Runnable() {
             @Override
             public void run() {
-                File localFile = null;
+                File localFile;
                 try {
                     localFile = new File(downloadFolder, imageName);
                     if(localFile.exists()){
@@ -53,29 +52,7 @@ class ImageDownloader {
                     localFile = new File(downloadFolder, imageName);
                     if(isTemp)
                         localFile.deleteOnExit();
-//                    if(isTemp) {
-//                        int idx = imageName.lastIndexOf('.');
-//                        // todo: downloading same file twice would create 2 temp files..?
-//                        File[] files = downloadDir.listFiles(new FilenameFilter() {
-//                            @Override
-//                            public boolean accept(File dir, String name) {
-//                                if(name.contains(imageName))
-//                                    return true;
-//                                return false;
-//                            }
-//                        });
-//                        if(files.length)
-//                        localFile = downloadDir.createTempFile(imageName.substring(0, idx), imageName.substring(idx + 1));
-//                        localFile.deleteOnExit();
-//                    } else {
-//                        localFile = new File(downloadDir, imageName);
-//                        if(localFile.exists()){
-//                            Log.d(TAG, "file already exists");
-//                            downloadDone(imageName);
-//                            return;
-//                        }
-//                    }
-                }catch(Exception e){
+                } catch(Exception e){
                     Log.e(TAG, "Failed to create file.");
                     Log.e(TAG, e.toString());
                     return;
@@ -103,8 +80,8 @@ class ImageDownloader {
         }
     }
 
-    public static void cancelAll() {
-        callbacks.clear();
+    public static void cancelBusiness(String businessID) {
+
     }
 
     public static void removeCallback(DownloadCallback callback) {

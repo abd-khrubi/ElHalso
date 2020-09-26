@@ -1,5 +1,13 @@
 package com.example.project;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,39 +16,26 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.content.ContentResolver;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.FileUtils;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.Toast;
+import androidx.work.Constraints;
+import androidx.work.Data;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.logging.FileHandler;
+import java.util.HashMap;
+import java.util.Map;
 
-public class GalleryActivity extends AppCompatActivity implements  StartDragListener, ImageDownloader.DownloadCallback {
+public class GalleryActivity extends AppCompatActivity implements  StartDragListener,
+        ImageDownloader.DownloadCallback, ImageUploader.UploadCallback {
 
     private boolean isEditable;
     private RecyclerView galleryRecyclerView;
@@ -112,8 +107,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
     }
 
     public void addImageButton(View view) {
-        // todo: update newImages arraylist
-
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -153,7 +146,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Business business = ((AppLoader)getApplicationContext()).getBusiness();
 
         if(requestCode == RC_ADD_IMAGES && resultCode == RESULT_OK) {
             ArrayList<Uri> imageList = new ArrayList<>();
@@ -165,77 +157,42 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
                 Log.d(TAG, data.getData().toString());
                 imageList.add(data.getData());
             }
-            uploadImages(business, imageList, 0);
+            uploadImages(imageList);
         }
-//                Bitmap bitmap1 = null, bitmap2 = null;
-
-//                bitmap2 = Bitmap.createScaledBitmap(bitmap2,150, 150, tru//                try {
-////                    bitmap1 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageList.get(0));
-////                    bitmap2 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageList.get(1));
-////                } catch (IOException e) {
-////                    e.printStackTrace();
-////                }
-////                bitmap1 = Bitmap.createScaledBitmap(bitmap1,150, 150, true);
-////                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap1);e);
-//                ((ImageButton)findViewById(R.id.tempImg2)).setImageBitmap(bitmap2);
-
-//            else if(data.getData() != null){
-//                Uri uri = data.getData();
-////                FirebaseHandler.getInstance().addImageToBusinessGallery(new Business(), uri, "image2.jpg");
-//                Log.d(TAG, uri.getLastPathSegment());
-//                Log.d(TAG, uri.getPath());
-//                Log.d(TAG, DocumentFile.fromSingleUri(this, uri).getName());
-////                Bitmap bitmap= BitmapFactory.decodeFile(uri.getPath());
-//                Bitmap bitmap = null;
-//                try {
-//                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                bitmap = Bitmap.createScaledBitmap(bitmap,((ImageButton)findViewById(R.id.tempImg)).getWidth(), ((ImageButton)findViewById(R.id.tempImg)).getHeight(), true);
-//                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap);
-////                ((ImageButton)findViewById(R.id.tempImg)).setImageURI(uri);
-//            }
     }
 
-//    public void uploadImages(final Business business, final ArrayList<Uri> imageList, final int idx) {
-//        FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
+    private void uploadImages(ArrayList<Uri> imageList) {
+        WorkManager workManager = WorkManager.getInstance(this);
+        Business business = ((AppLoader)getApplicationContext()).getBusiness();
+
+        for(int i=0;i<imageList.size();i++) {
+            ImageUploader.addImageUpload(getApplicationContext(), business, imageList.get(i), false, this);
+        }
+    }
+//
+//
+//    // todo: make it on another thread?
+//    public void uploadImages(final Business business, final ArrayList<Uri> imageList, final int idx){
+//        if(idx >= imageList.size())
+//            return;
+//
 //        final String imageName = DocumentFile.fromSingleUri(this, imageList.get(idx)).getName();
+//        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
+//        final LiveData<Boolean> updateDone = firebaseHandler.getUpdate();
 //        firebaseHandler.addImageToBusinessGallery(business, imageList.get(idx), imageName);
-//    }
-
-    // todo: make it on another thread?
-    public void uploadImages(final Business business, final ArrayList<Uri> imageList, final int idx){
-        if(idx >= imageList.size())
-            return;
-
-        final String imageName = DocumentFile.fromSingleUri(this, imageList.get(idx)).getName();
-        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
-        final LiveData<Boolean> updateDone = firebaseHandler.getUpdate();
-        firebaseHandler.addImageToBusinessGallery(business, imageList.get(idx), imageName);
-        updateDone.observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(Boolean aBoolean) {
-                if(!aBoolean)
-                    return;
-                updateDone.removeObserver(this);
-                //todo: copy to app folder
+//        updateDone.observe(this, new Observer<Boolean>() {
+//            @Override
+//            public void onChanged(Boolean aBoolean) {
+//                if(!aBoolean)
+//                    return;
+//                updateDone.removeObserver(this);
 //                String imageName = (String) FirebaseHandler.getInstance().getUpdatedObject();
-//                try {
-//                    copyImageToAppFolder(business, imageList.get(idx), imageName);
-//                    gallery.add(imageName);
-//                    adapter.notifyDataSetChanged();
-//                } catch (Exception e){
-//                    Log.e(TAG, e.toString());
-//                }
-//                Log.d(TAG, "image <" + imageName + "> uploaded");
-                String imageName = (String) FirebaseHandler.getInstance().getUpdatedObject();
-                gallery.add(imageName);
-                adapter.notifyDataSetChanged();
-                uploadImages(business, imageList, idx+1);
-            }
-        });
-    }
+//                gallery.add(imageName);
+//                adapter.notifyDataSetChanged();
+//                uploadImages(business, imageList, idx+1);
+//            }
+//        });
+//    }
 
     private void copyImageToAppFolder(Business business, Uri imageUri, String name) throws IOException {
         File createDir = new File(getFilesDir(), business.getId());
@@ -265,23 +222,17 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         });
     }
 
-//    @Override
-//    public void drawImage(ImageHolder holder, File galleryFolder, String image) {
-//        Bitmap bitmap = null;
-//        File imageFile = new File(galleryFolder, image);
-//        if(!imageFile.exists()) {
-//            Log.d(TAG, "file doesnt exists.");
-//            return;
-//        }
-//
-//        try {
-//            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.fromFile(imageFile));
-//            int width = (int) getResources().getDimension(R.dimen.gallery_image_width);
-//            int height = (int) getResources().getDimension(R.dimen.gallery_image_height);
-//            bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
-//            holder.imageView.setImageBitmap(bitmap);
-//        } catch (Exception e) {
-//            Log.d(TAG, e.toString());
-//        }
-//    }
+    @Override
+    public void onImageUploaded(String businessID, final String image) {
+        if(!businessID.equals(this.businessID))
+            return;
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                gallery.add(image);
+                adapter.addDownloadedImage(image);
+            }
+        });
+    }
 }
