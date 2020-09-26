@@ -106,7 +106,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         if(!file.exists())
             Log.d(TAG, "file does not exist o.o");
         Log.d(TAG, "trying to draw " + gallery.get(position));
-        Picasso.get().load(Uri.fromFile(file)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height).into(holder.imageView);
+//        Picasso.get().load(Uri.fromFile(file)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height).onlyScaleDown().fit().into(holder.imageView);
+        Picasso.get().load(Uri.fromFile(file)).fit().into(holder.imageView);
 //            FirebaseHandler.getInstance().fetchImageForBusinessIntoImageHolder(context, new Business("mpjMmySxxydICDPTlZ4k"), gallery.get(position), holder);
 //            Picasso.get().load(gallery.get(position)).resize(R.dimen.gallery_image_width, R.dimen.gallery_image_height)
 //                    .onlyScaleDown().placeholder(R.drawable.ic_action_syncing).into(holder.imageView);

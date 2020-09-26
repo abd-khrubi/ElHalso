@@ -26,70 +26,32 @@ class ImageDownloader {
         void onImageDownloaded(String businessID, String imageName);
     }
 
-    public static class tuple {
-        public String businessID;
-        public String imageName;
-        public File downloadFolder;
-        public boolean isTemp;
-
-        public tuple(String id, String image, File downloadFolder, boolean isTemp){
-            this.businessID = id;
-            this.imageName = image;
-            this.downloadFolder = downloadFolder;
-            this.isTemp = isTemp;
-        }
-
-        @Override
-        public boolean equals(@Nullable Object obj) {
-            tuple other = (tuple)obj;
-            return businessID.equals(other.businessID) && imageName.equals(other.imageName);
-//                    && downloadFolder.toString().equals(other.downloadFolder.toString());
-        }
-    }
-
     private static Executor bgExecutor = Executors.newCachedThreadPool();
     private static ArrayList<DownloadCallback> callbacks = new ArrayList<>();
-    private static ArrayList<tuple> toDownload = new ArrayList<>();
     private static FirebaseStorage storage = FirebaseStorage.getInstance();
-    private static boolean currentlyDownloading = false;
-    // todo: sysmtem for what to download and when
-    private static ArrayList<String> imagesToDownload;
-    private static File downloadFolder;
 
     private static final String TAG = "ImageDownloader";
 
     synchronized public static void getImage(String imageName, String businessID, boolean isTemp, File downloadFolder, DownloadCallback callback) {
         if(!callbacks.contains(callback))
             callbacks.add(callback);
-        tuple tup = new tuple(businessID, imageName, downloadFolder, isTemp);
-        if(!toDownload.contains(tup)){
-            toDownload.add(tup);
-        }
-        startDownload();
+        bgDownload(imageName, businessID, isTemp, downloadFolder);
     }
 
-    synchronized private static void startDownload() {
-        if(!currentlyDownloading && toDownload.size() >= 1) {
-            currentlyDownloading = true;
-            bgDownload(toDownload.get(0));
-        }
-    }
-
-    synchronized private static void bgDownload(final tuple tup) {
-        Log.d(TAG, "downloading " + tup.imageName);
-//        bgExecutor.execute(new Runnable() {
-//            @Override
-//            public void run() {
+    synchronized private static void bgDownload(final String imageName, final String businessID, final boolean isTemp, final File downloadFolder) {
+        bgExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
                 File localFile = null;
                 try {
-                    localFile = new File(tup.downloadFolder, tup.imageName);
+                    localFile = new File(downloadFolder, imageName);
                     if(localFile.exists()){
                         Log.d(TAG, "file already exists");
-                        downloadDone(tup.businessID, tup.imageName);
+                        downloadDone(businessID, imageName);
                         return;
                     }
-                    localFile = new File(tup.downloadFolder, tup.imageName);
-                    if(tup.isTemp)
+                    localFile = new File(downloadFolder, imageName);
+                    if(isTemp)
                         localFile.deleteOnExit();
 //                    if(isTemp) {
 //                        int idx = imageName.lastIndexOf('.');
@@ -119,7 +81,7 @@ class ImageDownloader {
                     return;
                 }
 
-                storage.getReference().child(tup.businessID + "/" + tup.imageName).getFile(localFile).addOnCompleteListener(new OnCompleteListener<FileDownloadTask.TaskSnapshot>() {
+                storage.getReference().child(businessID + "/" + imageName).getFile(localFile).addOnCompleteListener(new OnCompleteListener<FileDownloadTask.TaskSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<FileDownloadTask.TaskSnapshot> task) {
                         if(task.isSuccessful()){
@@ -128,14 +90,11 @@ class ImageDownloader {
                         else {
                             Log.d(TAG, "image failed to download");
                         }
-                        downloadDone(tup.businessID, tup.imageName);
-                        toDownload.remove(tup);
-                        currentlyDownloading = false;
-                        startDownload();
+                        downloadDone(businessID, imageName);
                     }
                 });
-//            }
-//        });
+            }
+        });
     }
 
     private synchronized static void downloadDone(String businessID, String imageName) {

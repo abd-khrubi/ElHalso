@@ -7,12 +7,12 @@ public class Review implements Parcelable {
     private String businessID;
     private String  userID;
     private String userName;
-    private int rating;
+    private float rating;
     private String text;
 
     public Review() {}
 
-    public Review(String businessID, String userID, String userName, int rating, String text) {
+    public Review(String businessID, String userID, String userName, float rating, String text) {
         this.businessID = businessID;
         this.userID = userID;
         this.userName = userName;
@@ -48,7 +48,7 @@ public class Review implements Parcelable {
         return text;
     }
 
-    public int getRating() {
+    public float getRating() {
         return rating;
     }
 
@@ -70,7 +70,7 @@ public class Review implements Parcelable {
         dest.writeString(businessID);
         dest.writeString(userID);
         dest.writeString(userName);
-        dest.writeInt(rating);
+        dest.writeFloat(rating);
         dest.writeString(text);
     }
 }

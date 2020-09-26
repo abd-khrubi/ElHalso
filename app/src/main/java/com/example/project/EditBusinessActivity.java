@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,13 +12,15 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.squareup.picasso.Picasso;
+
 import java.io.File;
 import java.util.ArrayList;
 
 public class EditBusinessActivity extends AppCompatActivity {
 
     private Business business;
-    private String logoLocation;
+    private String logoName;
     private ImageButton logoImg;
     private EditText nameTxt;
     private EditText descriptionTxt;
@@ -37,6 +40,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         nameTxt = (EditText) findViewById(R.id.nameTxt);
         descriptionTxt = (EditText) findViewById(R.id.descriptionTxt);
 
+        logoName = business.getLogo();
         if(savedInstanceState == null){
             // ToDo if rotation
             return;
@@ -44,20 +48,37 @@ public class EditBusinessActivity extends AppCompatActivity {
 
         nameTxt.setText(business.getName() == null ? "" : business.getName());
         descriptionTxt.setText(business.getDescription() == null ? "" : business.getDescription());
+        if(business.getLogo() != null) {
+            File galleryFolder = new File(getFilesDir(), business.getId());
+            File logo = new File(galleryFolder, logoName);
+            Picasso.get().load(Uri.fromFile(logo)).fit().into(logoImg);
+        }
     }
 
     public void saveBusiness(View view) {
         if(!validateDetails()) {
             return;
         }
-        ImageButton logoImg = (ImageButton) findViewById(R.id.logoImgBtn);
-        EditText nameTxt = (EditText) findViewById(R.id.nameTxt);
-        EditText descriptionTxt = (EditText) findViewById(R.id.descriptionTxt);
+
+        if(detailsChanged()){
+            finish();
+            return;
+        }
 
         business.setName(nameTxt.getText().toString());
         business.setDescription(descriptionTxt.getText().toString());
-        business.setLogo(logoLocation);
+        business.setLogo(logoName);
         // todo: update firebase
+    }
+
+    public void changeLogoButton(View view) {
+        // todo: change image to picked image, copy to folder when saved
+    }
+
+    private boolean detailsChanged() {
+        return !business.getName().equals(nameTxt.getText().toString())
+                && !business.getDescription().equals(descriptionTxt.getText().toString())
+                && (logoName == null || !business.getLogo().equals(logoName));
     }
 
     private boolean validateDetails(){
@@ -65,6 +86,7 @@ public class EditBusinessActivity extends AppCompatActivity {
             showMessage("Business name is too short.");
             return false;
         }
+
         return true;
     }
 
