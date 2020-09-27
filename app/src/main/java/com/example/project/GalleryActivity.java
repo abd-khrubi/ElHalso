@@ -5,13 +5,16 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
@@ -79,6 +82,15 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
 
         findViewById(R.id.deleteBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
         findViewById(R.id.addBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
+        Toolbar myToolbar = (Toolbar) findViewById(R.id.galleryToolbar);
+        setSupportActionBar(myToolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.gallery_menu, menu);
+        return true;
     }
 
     private void onGalleryUpdate() {
