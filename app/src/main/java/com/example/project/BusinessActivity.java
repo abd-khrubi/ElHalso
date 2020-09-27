@@ -1,6 +1,9 @@
 package com.example.project;
 
+import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,7 +12,11 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,6 +36,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     private static final float EMPTY_TEXT_ALPHA = 0.6f;
 
     private static final int RC_EDIT_BUSINESS = 974;
+    private static final int RC_READ_EXTERNAL_PERMISSION = 675;
 
     private static final String TAG = "BusinessActivity";
 
@@ -37,6 +45,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_business);
         setupBusiness(getIntent());
+        fillInBusinessDetails();
 
         Log.d(TAG, "in " + business.getId());
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
@@ -44,12 +53,74 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
 
+        onBusinessUpdate();
+
         downloadImages();
+
+//        boolean hasPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+//        if(!hasPermission) {
+//            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, RC_READ_EXTERNAL_PERMISSION);
+//        }
+    }
+
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//
+//        if (requestCode == RC_READ_EXTERNAL_PERMISSION) {
+//            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                Log.d(TAG, "got permission");
+//            } else {
+//                AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+//                alertDialog.setTitle("Permission required");
+//                alertDialog.setMessage("");
+//                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        dialog.dismiss();
+//                    }
+//                });
+//                alertDialog.show();
+//            }
+//        }
+//    }
+
+    private void fillInBusinessDetails(){
+        ((TextView)findViewById(R.id.nameTxt)).setText(business.getName() != null ? business.getName() : "");
+        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription() != null ? business.getDescription() : "(No description)");
+        ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
+        if(!ownedBusiness){
+            User user = ((AppLoader)getApplicationContext()).getUser();
+            int toDraw = user.getFavorites().contains(business.getId()) ? R.drawable.ic_is_favorite : R.drawable.ic_is_not_favorite;
+            ((ImageView)findViewById(R.id.editBtn)).setImageDrawable(getDrawable(toDraw));
+        }
+        setRatingBar();
+    }
+
+    private void onBusinessUpdate() {
+        final UploadBroadcastReceiver uploadReceiver = ((AppLoader)getApplicationContext()).getUploadReceiver();
+        uploadReceiver.getNewImage().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                if(s == null || !business.getId().equals(uploadReceiver.getBusiness().getId()))
+                    return;
+                if(uploadReceiver.isLogo()) {
+                    business.setLogo(s);
+                }
+                else {
+                    business.addImage(s);
+                    adapter.notifyItemInserted(business.getGallery().indexOf(s));
+                }
+                downloadImages();
+                fillInBusinessDetails();
+            }
+        });
     }
 
     private void downloadImages() {
-        if(business.getLogo() != null)
+        if(business.getLogo() != null) {
+            Log.d(TAG, "adding logo <"+business.getLogo()+">");
             ImageDownloader.getImage(business.getLogo(), business.getId(), !ownedBusiness, galleryFolder, this);
+        }
         for(String image : business.getGallery()){
             ImageDownloader.getImage(image, business.getId(), !ownedBusiness, galleryFolder, this);
         }
@@ -75,16 +146,6 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             galleryFolder = Files.createTempDir();
             galleryFolder.deleteOnExit();
         }
-
-        ((TextView)findViewById(R.id.nameTxt)).setText(business.getName() != null ? business.getName() : "");
-        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription() != null ? business.getDescription() : "(No description)");
-        ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
-        if(!ownedBusiness){
-            User user = ((AppLoader)getApplicationContext()).getUser();
-            int toDraw = user.getFavorites().contains(business.getId()) ? R.drawable.ic_is_favorite : R.drawable.ic_is_not_favorite;
-            ((ImageView)findViewById(R.id.editBtn)).setImageDrawable(getDrawable(toDraw));
-        }
-        setRatingBar();
 
         findViewById(R.id.editBtn).setVisibility(ownedBusiness ? View.VISIBLE : View.GONE);
         findViewById(R.id.toggleFavoriteBtn).setVisibility(!ownedBusiness ? View.VISIBLE : View.GONE);
@@ -134,7 +195,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             @Override
             public void run() {
                 if(business.getLogo() != null && imageName.equals(business.getLogo())){
-                    ImageView image = findViewById(R.id.logoImgBtn);
+                    ImageView image = findViewById(R.id.logoImg);
                     File imageFile = new File(galleryFolder, imageName);
                     Picasso.get().load(Uri.fromFile(imageFile)).fit().into(image);
                     return;
@@ -149,10 +210,9 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         super.onDestroy();
         if(ownedBusiness)
             return;
+        for(File image : galleryFolder.listFiles()){
+            image.delete();
+        }
         galleryFolder.delete();
-//        for(File image : galleryFolder.listFiles()){
-//            image.delete();
-//        }
-//        galleryFolder.delete();
     }
 }

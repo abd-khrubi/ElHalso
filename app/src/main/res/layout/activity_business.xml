@@ -13,9 +13,9 @@
       tools:context=".BusinessActivity">
 
     <ImageView
-        android:id="@+id/logoImgBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:id="@+id/logoImg"
+        android:layout_width="@dimen/business_logo_width"
+        android:layout_height="@dimen/business_logo_height"
         android:layout_marginTop="30dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,7 +30,7 @@
         android:text="Business name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logoImgBtn" />
+        app:layout_constraintTop_toBottomOf="@+id/logoImg" />
 
     <TextView
         android:id="@+id/descriptionTxt"

@@ -45,7 +45,7 @@ class ImageDownloader {
                 try {
                     localFile = new File(downloadFolder, imageName);
                     if(localFile.exists()){
-                        Log.d(TAG, "file already exists");
+                        Log.d(TAG, "file <"+imageName+"> already exists");
                         downloadDone(businessID, imageName);
                         return;
                     }
@@ -62,7 +62,7 @@ class ImageDownloader {
                     @Override
                     public void onComplete(@NonNull Task<FileDownloadTask.TaskSnapshot> task) {
                         if(task.isSuccessful()){
-                            Log.d(TAG, "image downloaded successfully");
+                            Log.d(TAG, "image <" + imageName +"> downloaded successfully");
                         }
                         else {
                             Log.d(TAG, "image failed to download");
@@ -76,7 +76,8 @@ class ImageDownloader {
 
     private synchronized static void downloadDone(String businessID, String imageName) {
         for (DownloadCallback callback: callbacks) {
-            callback.onImageDownloaded(businessID, imageName);
+            if(callback != null)
+                callback.onImageDownloaded(businessID, imageName);
         }
     }
 

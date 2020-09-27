@@ -3,6 +3,7 @@ package com.example.project;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.lifecycle.Observer;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -11,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
@@ -36,6 +38,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_business);
         business = ((AppLoader) getApplicationContext()).getBusiness();
+        onBusinessUpdate();
         fillInBusinessDetails(savedInstanceState);
         galleryFolder = new File(getFilesDir(), business.getId());
         if(!galleryFolder.exists())
@@ -43,12 +46,32 @@ public class EditBusinessActivity extends AppCompatActivity {
         Log.d(TAG, business.getId());
     }
 
+    private void onBusinessUpdate() {
+        final UploadBroadcastReceiver uploadReceiver = ((AppLoader)getApplicationContext()).getUploadReceiver();
+        uploadReceiver.getNewImage().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                if(s == null || !business.getId().equals(uploadReceiver.getBusiness().getId()) || !uploadReceiver.isLogo())
+                    return;
+
+                if(uploadReceiver.isLogo()) {
+                    business.setLogo(s);
+                    File imageFile = new File(galleryFolder, s);
+                    Picasso.get().load(Uri.fromFile(imageFile)).fit().into((ImageView)findViewById(R.id.logoImgBtn));
+                }
+                else {
+                    business.addImage(s);
+                }
+            }
+        });
+    }
+
     private void fillInBusinessDetails(Bundle savedInstanceState){
         logoImg = (ImageButton) findViewById(R.id.logoImgBtn);
         nameTxt = (EditText) findViewById(R.id.nameTxt);
         descriptionTxt = (EditText) findViewById(R.id.descriptionTxt);
 
-        if(savedInstanceState == null){
+        if(savedInstanceState != null){
             // ToDo if rotation
             return;
         }
@@ -66,20 +89,22 @@ public class EditBusinessActivity extends AppCompatActivity {
             return;
         }
 
-        if(detailsChanged()){
+        if(!detailsChanged()){
             finish();
             return;
         }
 
         business.setName(nameTxt.getText().toString());
         business.setDescription(descriptionTxt.getText().toString());
+        // todo: add location
         if(newLogoUri != null) {
             if(business.getLogo() != null) {
                 File logo = new File(galleryFolder, business.getLogo());
                 logo.delete();
             }
-            ImageUploader.addImageUpload(getApplicationContext(), business, newLogoUri, true, null);
+            ImageUploader.addImageUpload(getApplicationContext(), business, newLogoUri, true);
         }
+        FirebaseHandler.getInstance().updateEditedBusiness(business);
         finish();
     }
 
@@ -93,8 +118,8 @@ public class EditBusinessActivity extends AppCompatActivity {
     private boolean detailsChanged() {
         String origDescription = business.getDescription() != null ? business.getDescription() : "";
         return !business.getName().equals(nameTxt.getText().toString())
-                && origDescription.equals(descriptionTxt.getText().toString())
-                && (newLogoUri != null);
+                || !origDescription.equals(descriptionTxt.getText().toString())
+                || (newLogoUri != null);
 //                && locationChanged;
 
     }
@@ -150,5 +175,11 @@ public class EditBusinessActivity extends AppCompatActivity {
             }
             Picasso.get().load(newLogoUri).fit().into(logoImg);
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+//        ((AppLoader)getApplicationContext()).getUploadReceiver().getNewImage().removeObservers(this); // todo: need?
     }
 }

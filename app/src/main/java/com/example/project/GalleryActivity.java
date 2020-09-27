@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -25,6 +26,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.squareup.picasso.Picasso;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GalleryActivity extends AppCompatActivity implements  StartDragListener,
-        ImageDownloader.DownloadCallback, ImageUploader.UploadCallback {
+        ImageDownloader.DownloadCallback{
 
     private boolean isEditable;
     private RecyclerView galleryRecyclerView;
@@ -67,10 +70,27 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         galleryRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMNS_COUNT));
         touchHelper.attachToRecyclerView(galleryRecyclerView);
 
+        onGalleryUpdate();
         downloadImages();
 
         findViewById(R.id.deleteBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
         findViewById(R.id.addBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
+    }
+
+    private void onGalleryUpdate() {
+        final UploadBroadcastReceiver uploadReceiver = ((AppLoader)getApplicationContext()).getUploadReceiver();
+        uploadReceiver.getNewImage().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                if(s == null || !businessID.equals(uploadReceiver.getBusiness().getId()) || uploadReceiver.isLogo())
+                    return;
+                if(!gallery.contains(s)) { // todo: no need for if?
+                    gallery.add(s);
+                    adapter.notifyItemInserted(gallery.indexOf(s)); // size-1?
+                }
+                downloadImages();
+            }
+        });
     }
 
     private void downloadImages() {
@@ -166,33 +186,9 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         Business business = ((AppLoader)getApplicationContext()).getBusiness();
 
         for(int i=0;i<imageList.size();i++) {
-            ImageUploader.addImageUpload(getApplicationContext(), business, imageList.get(i), false, this);
+            ImageUploader.addImageUpload(getApplicationContext(), business, imageList.get(i), false);
         }
     }
-//
-//
-//    // todo: make it on another thread?
-//    public void uploadImages(final Business business, final ArrayList<Uri> imageList, final int idx){
-//        if(idx >= imageList.size())
-//            return;
-//
-//        final String imageName = DocumentFile.fromSingleUri(this, imageList.get(idx)).getName();
-//        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
-//        final LiveData<Boolean> updateDone = firebaseHandler.getUpdate();
-//        firebaseHandler.addImageToBusinessGallery(business, imageList.get(idx), imageName);
-//        updateDone.observe(this, new Observer<Boolean>() {
-//            @Override
-//            public void onChanged(Boolean aBoolean) {
-//                if(!aBoolean)
-//                    return;
-//                updateDone.removeObserver(this);
-//                String imageName = (String) FirebaseHandler.getInstance().getUpdatedObject();
-//                gallery.add(imageName);
-//                adapter.notifyDataSetChanged();
-//                uploadImages(business, imageList, idx+1);
-//            }
-//        });
-//    }
 
     private void copyImageToAppFolder(Business business, Uri imageUri, String name) throws IOException {
         File createDir = new File(getFilesDir(), business.getId());
@@ -218,20 +214,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             @Override
             public void run() {
                 adapter.addDownloadedImage(imageName);
-            }
-        });
-    }
-
-    @Override
-    public void onImageUploaded(String businessID, final String image) {
-        if(!businessID.equals(this.businessID))
-            return;
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                gallery.add(image);
-                adapter.addDownloadedImage(image);
             }
         });
     }

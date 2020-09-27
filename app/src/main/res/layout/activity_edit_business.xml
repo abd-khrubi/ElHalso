@@ -8,8 +8,8 @@
 
     <ImageButton
         android:id="@+id/logoImgBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="@dimen/business_logo_width"
+        android:layout_height="@dimen/business_logo_height"
         android:layout_marginTop="30dp"
         android:onClick="changeLogoButton"
         app:layout_constraintEnd_toEndOf="parent"

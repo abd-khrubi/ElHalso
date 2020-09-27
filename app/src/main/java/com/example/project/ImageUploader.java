@@ -26,10 +26,12 @@ import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,29 +41,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ImageUploader extends ListenableWorker {
-    public interface UploadCallback{
-        void onImageUploaded(String businessID, String image);
-    }
-
     private CallbackToFutureAdapter.Completer<Result> callback;
     private Context appContext;
     private Business business;
     private Uri imageUri;
     private boolean isLogo;
-    private UploadCallback uploadCallback;
-    private BroadcastReceiver receiver;
+    private static Gson gson = new Gson();
 
     private static final String TAG = "ImageUploader";
 
-    public static void addImageUpload(Context appContext, Business business, Uri imageUri, boolean isLogo, UploadCallback uploadCallback) {
+    public static void addImageUpload(Context appContext, Business business, Uri imageUri, boolean isLogo) {
         WorkManager workManager = WorkManager.getInstance(appContext);
         OneTimeWorkRequest.Builder imageUploadBuilder = new OneTimeWorkRequest.Builder(ImageUploader.class);
         Data.Builder data = new Data.Builder();
         Map<String, Object> map = new HashMap<>();
-        map.put("business", business);
-        map.put("imageUri", imageUri);
+        map.put("business", gson.toJson(business));
+        map.put("imageUri", imageUri.toString());
         map.put("isLogo", isLogo);
-        map.put("uploadCallback", uploadCallback);
         data.putAll(map);
         imageUploadBuilder.setInputData(data.build());
         imageUploadBuilder.setConstraints(Constraints.NONE);
@@ -74,10 +70,9 @@ public class ImageUploader extends ListenableWorker {
         super(appContext, workerParams);
         this.appContext = appContext;
         Map<String, Object> map = workerParams.getInputData().getKeyValueMap();
-        this.business = (Business) map.get("business");
-        this.imageUri = (Uri) map.get("imageUri");
+        this.business = (Business) gson.fromJson((String) map.get("business"), Business.class);
+        this.imageUri = Uri.parse((String) map.get("imageUri"));
         this.isLogo = (Boolean) map.get("isLogo");
-        this.uploadCallback = (UploadCallback) map.get("uploadCallback");;
     }
 
     @NonNull
@@ -98,7 +93,7 @@ public class ImageUploader extends ListenableWorker {
 
     private void uploadImage() {
         String imageFileName = DocumentFile.fromSingleUri(appContext, imageUri).getName();
-        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
+        Log.d(TAG, "uploading image");
 
         if(business.getGallery().contains(imageFileName)){
             int idx = imageFileName.lastIndexOf('.');
@@ -109,39 +104,46 @@ public class ImageUploader extends ListenableWorker {
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(business.getId() + "/" + imageName);
         ref.putFile(imageUri).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Void>>() {
             @Override
-            public Task<Void> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+            public Task<Void> then(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                Log.d(TAG, "putting storage file is " + task.isSuccessful());
                 if (!task.isSuccessful()) {
                     Log.e(TAG, task.getException().toString());
-                    throw task.getException();
+//                    throw task.getException();
                 }
-                copyImageToAppDir(imageName);
+//                try {
+//                      todo: not getting permissions for copy..
+//                    copyImageToAppDir(imageName);
+//                } catch (Exception e) {
+//                    Log.e(TAG, e.toString());
+//                }
                 if(isLogo) {
                     business.setLogo(imageName);
-                    return FirebaseFirestore.getInstance().collection("business").document(business.getId()).set(business);
+                    return FirebaseFirestore.getInstance().collection("business").document(business.getId()).update("logo", imageName);
                 }
                 else {
                     business.addImage(imageName);
-                    return FirebaseFirestore.getInstance().collection("business").document(business.getId()).update("gallery", business.getGallery());
+                    return FirebaseFirestore.getInstance().collection("business").document(business.getId()).update("gallery", FieldValue.arrayUnion(imageName));
                 }
             }
         }).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    // gallery activity is still alive
-                    if(uploadCallback != null){
-                        uploadCallback.onImageUploaded(business.getId(), imageName);
-                    }
-                    else if(isLogo) {
-                        business.setLogo(imageName);
-                    }
-                    else {
-                        business.addImage(imageName);
-                    }
-                    callback.set(Result.success());
+                    Intent intent = new Intent();
+                    intent.setAction(AppLoader.UPLOAD_BROADCAST);
+                    intent.putExtra("business", business);
+                    intent.putExtra("newImage", imageName);
+                    intent.putExtra("isLogo", isLogo);
+                    appContext.sendBroadcast(intent);
+
+                    if(callback != null)
+                        callback.set(Result.success());
                     Log.d(TAG, "image uploaded to storage and firestore successfully");
                 } else {
                     Log.d(TAG, "image failed to upload to firestore");
+                    Log.d(TAG, task.getException().toString());
+                    if(callback != null)
+                        callback.set(Result.failure());
                 }
             }
         });

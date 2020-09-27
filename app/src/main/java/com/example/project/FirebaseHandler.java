@@ -451,4 +451,20 @@ public class FirebaseHandler {
             }
         });
     }
+
+    public void updateEditedBusiness(Business business) {
+        firestore.collection(BUSINESS).document(business.getId()).update("name", business.getName(),
+                "description", business.getDescription(),
+                "coordinates", business.getCoordinates()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()) {
+                    Log.d(TAG, "business updated edits successfully");
+                }
+                else {
+                    Log.d(TAG, "failed to update business edits");
+                }
+            }
+        });
+    }
 }
