@@ -65,7 +65,6 @@ public class ImageUploader extends ListenableWorker {
         workManager.enqueueUniqueWork(uniqueTaskName, ExistingWorkPolicy.KEEP, imageUploadBuilder.build());
     }
 
-    // todo: logo?
     public ImageUploader(@NonNull Context appContext, @NonNull WorkerParameters workerParams) {
         super(appContext, workerParams);
         this.appContext = appContext;

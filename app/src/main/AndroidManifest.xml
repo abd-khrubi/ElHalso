@@ -13,7 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".GalleryActivity"></activity>
+        <activity android:name=".ReviewsActivity"></activity>
+        <activity android:name=".GalleryActivity" />
         <activity android:name=".EditBusinessActivity" />
         <activity android:name=".BusinessActivity" />
         <activity android:name=".EmailLoginActivity" />
@@ -23,7 +24,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- FACEBOOK LOGIN -->
+        </activity>
+        <!-- FACEBOOK LOGIN -->
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_application_id" />
@@ -44,6 +46,7 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -54,4 +57,5 @@
                 android:resource="@xml/file_paths" />
         </provider>
     </application>
+
 </manifest>

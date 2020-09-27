@@ -44,10 +44,8 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
     private RecyclerView galleryRecyclerView;
     private GalleryAdapter adapter;
     private ItemTouchHelper touchHelper;
-    private ArrayList<String> gallery;
     private File galleryFolder;
-    private ArrayList<String> newImages;
-    private String businessID;
+    private Business business;
 
     private static final int COLUMNS_COUNT = 4;
     private static final int RC_ADD_IMAGES = 497;
@@ -58,13 +56,19 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gallery);
-        isEditable = getIntent().getStringExtra("mode").equals("editable");
-        gallery = getIntent().getStringArrayListExtra("gallery");
-        businessID = getIntent().getStringExtra("businessID");
+        if(getIntent().hasExtra("business")) {
+            business = getIntent().getParcelableExtra("business");
+            galleryFolder = new File(getIntent().getStringExtra("gallery_folder"));
+            isEditable = false;
+        }
+        else {
+            business = ((AppLoader)getApplicationContext()).getBusiness();
+            galleryFolder = new File(getFilesDir(), business.getId());
+            isEditable = false;
+        }
 
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
-        galleryFolder = new File(getIntent().getStringExtra("gallery_folder"));
-        adapter = new GalleryAdapter(this, gallery, galleryFolder, isEditable, this);
+        adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, isEditable, this);
         touchHelper = new ItemTouchHelper(new ImageMoveCallback(adapter));
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMNS_COUNT));
@@ -82,20 +86,21 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         uploadReceiver.getNewImage().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                if(s == null || !businessID.equals(uploadReceiver.getBusiness().getId()) || uploadReceiver.isLogo())
+                if(s == null || !business.getId().equals(uploadReceiver.getBusiness().getId()))
                     return;
-                if(!gallery.contains(s)) { // todo: no need for if?
-                    gallery.add(s);
-                    adapter.notifyItemInserted(gallery.indexOf(s)); // size-1?
+                if(uploadReceiver.isLogo()){
+                    business.setLogo(s);
+                    return;
                 }
+                business.addImage(s);
                 downloadImages();
             }
         });
     }
 
     private void downloadImages() {
-        for(String image : gallery){
-            ImageDownloader.getImage(image, businessID, !isEditable, galleryFolder, this);
+        for(String image : business.getGallery()){
+            ImageDownloader.getImage(image, business.getId(), !isEditable, galleryFolder, this);
         }
     }
 
@@ -111,7 +116,8 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                gallery.removeAll(adapter.getSelectedImages());
+                for(String image : adapter.getSelectedImages())
+                    FirebaseHandler.getInstance().deleteImageForBusiness(business, image);
                 dialog.dismiss();
                 adapter.triggerSelecting();
                 adapter.notifyDataSetChanged();
@@ -136,7 +142,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
 
     public void okButton(View view) {
         Intent backIntent = new Intent();
-        backIntent.putStringArrayListExtra("gallery", gallery);
         setResult(RESULT_OK, backIntent);
         finish();
     }
@@ -152,7 +157,6 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         }
         else {
             Intent backIntent = new Intent();
-            backIntent.putStringArrayListExtra("gallery", gallery);
             setResult(RESULT_OK, backIntent);
             finish();
         }
@@ -177,37 +181,31 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
                 Log.d(TAG, data.getData().toString());
                 imageList.add(data.getData());
             }
-            uploadImages(imageList);
+
+            for(int i=0;i<imageList.size();i++) {
+                ImageUploader.addImageUpload(getApplicationContext(), business, imageList.get(i), false);
+            }
         }
     }
 
-    private void uploadImages(ArrayList<Uri> imageList) {
-        WorkManager workManager = WorkManager.getInstance(this);
-        Business business = ((AppLoader)getApplicationContext()).getBusiness();
-
-        for(int i=0;i<imageList.size();i++) {
-            ImageUploader.addImageUpload(getApplicationContext(), business, imageList.get(i), false);
-        }
-    }
-
-    private void copyImageToAppFolder(Business business, Uri imageUri, String name) throws IOException {
-        File createDir = new File(getFilesDir(), business.getId());
-        if(!createDir.exists()) {
-            createDir.mkdir();
-        }
-        File file = new File(galleryFolder, name);
-        if(file.exists()){
-            return;
-        }
-
-        InputStream input = getContentResolver().openInputStream(imageUri);
-        Files.copy(input, file.toPath());
-        input.close();
-    }
+//    private void copyImageToAppFolder(Business business, Uri imageUri, String name) throws IOException {
+//        File createDir = new File(getFilesDir(), business.getId());
+//        if(!createDir.exists()) {
+//            createDir.mkdir();
+//        }
+//        File file = new File(galleryFolder, name);
+//        if(file.exists()){
+//            return;
+//        }
+//
+//        InputStream input = getContentResolver().openInputStream(imageUri);
+//        Files.copy(input, file.toPath());
+//        input.close();
+//    }
 
     @Override
     public void onImageDownloaded(String businessID, final String imageName) {
-        if(!this.businessID.equals(businessID))
+        if(!business.getId().equals(businessID))
             return;
 
         runOnUiThread(new Runnable() {

@@ -139,11 +139,6 @@ public class EditBusinessActivity extends AppCompatActivity {
 
     public void editGalleryButton(View view) {
         Intent intent = new Intent(this, GalleryActivity.class);
-        intent.putExtra("mode", "editable");
-        intent.putExtra("gallery_folder", galleryFolder.getAbsolutePath());
-        intent.putExtra("gallery", business.getGallery());
-        intent.putExtra("businessID", business.getId());
-
         startActivityForResult(intent, RC_EDIT_GALLERY);
     }
 
@@ -156,16 +151,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode == RC_EDIT_GALLERY && resultCode == RESULT_OK) {
-            ArrayList<String> newGallery = data.getStringArrayListExtra("gallery");
-            boolean changed = newGallery.size() != business.getGallery().size();
-            for(int i=0;i<newGallery.size();i++){
-                if(changed || !business.getGallery().get(i).equals(newGallery.get(i))) {
-                    changed = true;
-                    break;
-                }
-            }
-            if(changed)
-                business.setGallery(newGallery);
+
         }
         else if(requestCode == RC_CHANGE_LOGO && resultCode == RESULT_OK) {
             if (data.getClipData() != null) {

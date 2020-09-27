@@ -179,11 +179,22 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     }
 
     public void showReviews(View view){
-
+        Intent intent = new Intent(this, ReviewsActivity.class);
+        startActivity(intent); // todo: activityForResult to update reviews count?
     }
 
     public void toggleFavorite(View view) {
 
+    }
+
+    public void showGallery(View view) {
+        Intent intent = new Intent(this, GalleryActivity.class);
+        if(!ownedBusiness) {
+            intent.putExtra("business", business);
+            intent.putExtra("galleryFolder", galleryFolder.getAbsolutePath());
+
+        }
+        startActivity(intent);
     }
 
     @Override

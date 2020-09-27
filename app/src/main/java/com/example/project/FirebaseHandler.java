@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -117,26 +118,6 @@ public class FirebaseHandler {
             }
         });
     }
-
-//    private void fetchGalleryForBusiness(final Business business) {
-//        storage.getReference().child(business.getId() + "/").listAll().addOnCompleteListener(new OnCompleteListener<ListResult>() {
-//            @Override
-//            public void onComplete(@NonNull Task<ListResult> task) {
-//                if(task.isSuccessful()){
-//                    Log.d(TAG, "successfully retrieved gallery for business");
-//                    int i=1;
-//                    ArrayList<String> gallery = new ArrayList<>();
-//                    for(StorageReference sr : task.getResult().getItems()){
-//                        Log.d(TAG, i + "- " + sr.getName());
-//                        gallery.add(sr.getName());
-//                    }
-//                    business.setGallery(gallery);
-//                    objectToUpdate = business;
-//                    updateDone.postValue(true);
-//                }
-//            }
-//        });
-//    }
 
     public void updateOrCreateFirebaseUser(final User user) {
         firestore.collection(USERS).document(user.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -258,161 +239,47 @@ public class FirebaseHandler {
         });
     }
 
-    public void addImageToBusinessGallery(final Business business, Uri image, String imageName){
-        // ToDo: make better sure image name does not already exist (except when its 'logo')
-        if(business.getGallery().contains(imageName)){
-            int idx = imageName.lastIndexOf('.');
-            imageName = imageName.substring(0,idx) + "_1" + imageName.substring(idx);
-        }
-        final String name = imageName;
-        // adding image to storage
-        final StorageReference ref = storage.getReference().child(business.getId() + "/" + imageName);
-        ref.putFile(image).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
-            @Override
-            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
-                if (!task.isSuccessful()) {
-                    throw task.getException();
-                }
-
-                // Continue with the task to get the download URL
-                return ref.getDownloadUrl();
-            }
-        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
-            @Override
-            public void onComplete(@NonNull Task<Uri> task) {
-                if (task.isSuccessful()) {
-                    Uri downloadUri = task.getResult();
-                    business.addImage(downloadUri.toString());
-                    objectToUpdate = downloadUri.toString();
-                    updateBusinessGallery(business);
-                } else {
-                    // Handle failures
-                    // ...
-                }
-            }
-        });
-    }
-
-//    public void addImagesToBusinessGallery(final Business business, ArrayList<Uri> images, final String imageName){
-//        // ToDo: make sure images name does not already exist (except when its 'logo')
-//        if(business.getGallery().contains(imageName)){
-//            int idx = imageName.lastIndexOf('.');
-//            imageName = imageName.substring(0,idx) + "_1" + imageName.substring(idx);
-//        }
-//        // adding image to storage
-//        storage.getReference().child(business.getId() + "/" + imageName).putFile(image).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-//                if(task.isSuccessful()){
-//                    Log.d(TAG, "file uploaded successfully");
-//                    business.addImage(imageName);
-//                    updateBusinessGallery(business);
-//                }
-//                else {
-//                    Log.d(TAG, "failed to upload file");
-//                }
-//            }
-//        });
-//    }
-
     public void deleteImageForBusiness(final Business business, final String image){
-        storage.getReference().child(business.getId() + "/" + image).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+        business.removeImage(image);
+        storage.getReference().child(business.getId() + "/" + image).delete().continueWithTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(@NonNull Task<Void> task) throws Exception {
+                if(task.isSuccessful()){
+                    Log.d(TAG, "Image removed from business storage");
+                }
+                else {
+                    Log.d(TAG, "Image failed to be removed from business storage");
+                }
+                return firestore.collection(BUSINESS).document(business.getId()).update("gallery", FieldValue.arrayRemove(image));
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
-                    Log.d(TAG, "successfully deleted image from storage");
-                    business.removeImage(image);
-                    updateBusinessGallery(business);
-                }
-                else {
-                    Log.d(TAG, "failed to delete image from storage");
-                }
-            }
-        });
-    }
-
-    public void fetchImageForBusinessIntoImageHolder(Context context, Business business, final String image, final ImageHolder holder) {
-        StorageReference ref = storage.getReference().child(business.getId() + "/" + image);
-        storage.getReference().child(business.getId() + "/" + image).getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-            @Override
-            public void onComplete(@NonNull Task<Uri> task) {
                 if(task.isSuccessful()){
-                    Log.d(TAG, "image <" + image + "> downloaded successfully");
-                    Log.d(TAG, task.getResult().toString());
-                    Picasso.get().load(task.getResult()).placeholder(R.drawable.ic_action_syncing).into(holder.imageView);
+                    Log.d(TAG, "Image removed from business firestore");
                 }
                 else {
-                    Log.d(TAG, "image failed to download");
-                }
-                updateDone.postValue(true);
-            }
-        });
-//        StorageReference ref = storage.getReference().child(business.getId() + "/" + image);
-//        Glide.with(context).load(ref).into(holder.imageView);
-    }
-
-    public void fetchImageForBusiness(Business business, String image, File downloadDir, boolean isTemp) {
-        File localFile = null;
-        try {
-            if (isTemp) {
-                int idx = image.lastIndexOf('.');
-                localFile = downloadDir.createTempFile(image.substring(0, idx), image.substring(idx + 1));
-            } else {
-                localFile = new File(downloadDir, image);
-            }
-            if(localFile.exists()){
-                Log.d(TAG, "file already exists");
-                updateDone.postValue(true);
-                return;
-            }
-        }catch(Exception e){
-            Log.e(TAG, "Failed to create file.");
-            Log.e(TAG, e.toString());
-            updateDone.postValue(true);
-            return;
-        }
-
-
-        storage.getReference().child(business.getId() + "/" + image).getFile(localFile).addOnCompleteListener(new OnCompleteListener<FileDownloadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<FileDownloadTask.TaskSnapshot> task) {
-                if(task.isSuccessful()){
-                    Log.d(TAG, "image downloaded successfully");
-                }
-                else {
-                    Log.d(TAG, "image failed to download");
-                }
-                updateDone.postValue(true);
-            }
-        });
-    }
-
-    private void updateBusinessGallery(final Business business) {
-        firestore.collection(BUSINESS).document(business.getId()).update("gallery", business.getGallery()).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
-                    updateDone.postValue(true);
-                }
-                else {
-                    Log.d(TAG, "failed to update business.");
+                    Log.d(TAG, "Image failed to be removed from business firestore");
                 }
             }
         });
     }
 
     public void addReview(Business business, Review review) {
-        business.addReview(review);
-        updateBusinessReviews(business);
+        updateBusinessReviews(business, review, true);
     }
 
     public void removeReview(Business business, Review review){
-        business.removeReview(review);
-        updateBusinessReviews(business);
+        updateBusinessReviews(business, review, false);
     }
 
-    private void updateBusinessReviews(final Business business){
-        firestore.collection(BUSINESS).document(business.getId()).update("reviews", business.getReviews()).addOnCompleteListener(new OnCompleteListener<Void>() {
+    private void updateBusinessReviews(final Business business, Review review, boolean isAdding){
+        FieldValue value;
+        if(isAdding)
+            value = FieldValue.arrayUnion(review);
+        else
+            value = FieldValue.arrayRemove(review);
+        firestore.collection(BUSINESS).document(business.getId()).update("reviews", value).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()) {
@@ -427,19 +294,20 @@ public class FirebaseHandler {
     }
 
     public void addFavoriteBusiness(User user, Business business) {
-        ArrayList<String> favorites = user.getFavorites();
-        favorites.add(business.getId());
-        updateUserFavorites(user, favorites);
+        updateUserFavorites(user, business, true);
     }
 
     public void removeFavoriteBusiness(User user, Business business) {
-        ArrayList<String> favorites = user.getFavorites();
-        favorites.remove(business.getId());
-        updateUserFavorites(user, favorites);
+        updateUserFavorites(user, business, false);
     }
 
-    private void updateUserFavorites(User user, ArrayList<String> favorites) {
-        firestore.collection(USERS).document(user.getId()).update("favorites", favorites).addOnCompleteListener(new OnCompleteListener<Void>() {
+    private void updateUserFavorites(User user, Business business, boolean isAdding) {
+        FieldValue value;
+        if(isAdding)
+            value = FieldValue.arrayUnion(business.getId());
+        else
+            value = FieldValue.arrayRemove(business.getId());
+        firestore.collection(USERS).document(user.getId()).update("favorites", value).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()) {
