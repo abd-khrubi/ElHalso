@@ -109,4 +109,15 @@
         app:layout_constraintStart_toStartOf="@+id/emailTxt"
         app:layout_constraintTop_toBottomOf="@+id/pass2Txt" />
 
+    <Button
+        android:id="@+id/resetBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:onClick="resetPassword"
+        android:text="Reset Password"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toEndOf="@+id/signBtn"
+        app:layout_constraintTop_toTopOf="@+id/signBtn" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
