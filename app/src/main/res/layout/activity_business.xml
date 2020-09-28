@@ -12,38 +12,39 @@
       android:layout_height="match_parent"
       tools:context=".BusinessActivity">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/businessToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
     <ImageView
         android:id="@+id/logoImg"
         android:layout_width="@dimen/business_logo_width"
         android:layout_height="@dimen/business_logo_height"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/businessToolbar"
         app:srcCompat="@mipmap/ic_launcher" />
 
     <TextView
-        android:id="@+id/nameTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:text="Business name"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logoImg" />
-
-    <TextView
-        android:id="@+id/descriptionTxt"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="30dp"
-        android:maxLines="3"
-        android:gravity="center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nameTxt" />
+      android:id="@+id/descriptionTxt"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="30dp"
+      android:layout_marginTop="30dp"
+      android:layout_marginEnd="30dp"
+      android:gravity="center"
+      android:maxLines="3"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/logoImg" />
 
     <TextView
         android:id="@+id/reviewsTxt"
@@ -75,28 +76,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/galleryTxt" />
 
-    <ImageView
-        android:id="@+id/editBtn"
-        android:layout_width="@dimen/business_favorite_width"
-        android:layout_height="@dimen/business_favorite_height"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="15dp"
-        android:onClick="editBusiness"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_edit_business" />
-
-    <ImageView
-        android:id="@+id/toggleFavoriteBtn"
-        android:layout_width="@dimen/business_favorite_width"
-        android:layout_height="@dimen/business_favorite_height"
-        android:onClick="toggleFavorite"
-        android:layout_marginTop="15dp"
-        android:layout_marginEnd="15dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_is_not_favorite" />
-
     <TextView
         android:id="@+id/galleryTxt"
         android:layout_width="wrap_content"
@@ -107,6 +86,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/reviewsTxt" />
+
+    <TextView
+        android:id="@+id/noImagesTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="0dp"
+        android:text="(No images yet)"
+        android:alpha="0.7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/galleryTxt" />
 
   </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -15,75 +15,26 @@
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
-
-        <ImageView
-            android:id="@+id/toolbarBack"
-            android:layout_width="@dimen/gallery_action_button_height"
-            android:layout_height="match_parent"
-            app:srcCompat="@drawable/ic_action_back" />
-
-        <TextView
-            android:id="@+id/toolbarTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Gallery"
-            android:gravity="center" />
-
-    </androidx.appcompat.widget.Toolbar>
-
-    <TextView
-        android:id="@+id/titleTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20dp"
-        android:text="Title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/galleryRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginRight="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleTxt"
+        app:layout_constraintTop_toBottomOf="@id/galleryToolbar"
         tools:layout_editor_absoluteX="1dp" />
 
-    <ImageView
-        android:id="@+id/okBtn"
-        android:layout_width="@dimen/gallery_action_button_width"
-        android:layout_height="@dimen/gallery_action_button_height"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="5dp"
-        android:clickable="true"
-        android:onClick="okButton"
+    <TextView
+        android:id="@+id/noGalleryTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:alpha="0.7"
+        android:text="(No images yet)"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_ok_image" />
-
-    <ImageView
-        android:id="@+id/addBtn"
-        android:layout_width="@dimen/gallery_action_button_width"
-        android:layout_height="@dimen/gallery_action_button_height"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="30dp"
-        android:onClick="addImageButton"
-        app:layout_constraintEnd_toStartOf="@+id/okBtn"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_add_image" />
-
-    <ImageView
-        android:id="@+id/deleteBtn"
-        android:layout_width="@dimen/gallery_action_button_width"
-        android:layout_height="@dimen/gallery_action_button_height"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="30dp"
-        android:onClick="deleteImagesButton"
-        app:layout_constraintEnd_toStartOf="@+id/addBtn"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_delete_image" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/galleryToolbar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -6,11 +6,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -29,6 +31,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -40,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+// todo: update firestore when gallery is rearranged
 public class GalleryActivity extends AppCompatActivity implements  StartDragListener,
         ImageDownloader.DownloadCallback{
 
@@ -49,6 +53,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
     private ItemTouchHelper touchHelper;
     private File galleryFolder;
     private Business business;
+    private Menu menu;
 
     private static final int COLUMNS_COUNT = 4;
     private static final int RC_ADD_IMAGES = 497;
@@ -61,14 +66,15 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         setContentView(R.layout.activity_gallery);
         if(getIntent().hasExtra("business")) {
             business = getIntent().getParcelableExtra("business");
-            galleryFolder = new File(getIntent().getStringExtra("gallery_folder"));
+            galleryFolder = new File(getIntent().getStringExtra("galleryFolder"));
             isEditable = false;
         }
         else {
             business = ((AppLoader)getApplicationContext()).getBusiness();
             galleryFolder = new File(getFilesDir(), business.getId());
-            isEditable = false;
+            isEditable = true;
         }
+        findViewById(R.id.noGalleryTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
 
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
         adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, isEditable, this);
@@ -80,17 +86,86 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         onGalleryUpdate();
         downloadImages();
 
-        findViewById(R.id.deleteBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
-        findViewById(R.id.addBtn).setVisibility(isEditable ? View.VISIBLE : View.GONE);
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.galleryToolbar);
-        setSupportActionBar(myToolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        adapter.getSelectedImagesSize().observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer size) {
+                if(size == 0){
+                    getSupportActionBar().setTitle(business.getName());
+                    menu.findItem(R.id.action_delete).setVisible(false);
+                    return;
+                }
+                getSupportActionBar().setTitle(size + " Images Selected");
+                menu.findItem(R.id.action_delete).setVisible(true);
+            }
+        });
+
+        setSupportActionBar((Toolbar) findViewById(R.id.galleryToolbar));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(business.getName());
+        getSupportActionBar().setSubtitle("Gallery");
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
         getMenuInflater().inflate(R.menu.gallery_menu, menu);
+        menu.findItem(R.id.action_add).setVisible(isEditable);
+        menu.findItem(R.id.action_delete).setVisible(false);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()){
+            case android.R.id.home:
+                backButton();
+                break;
+            case R.id.action_add:
+                addImageButton();
+                break;
+            case R.id.action_delete:
+                deleteImagesButton();
+                break;
+            case R.id.action_logout:
+                logout();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
+    private void backButton(){
+        if(adapter.getIsSelecting()){
+            adapter.triggerSelecting();
+            return;
+        }
+        Intent backIntent = new Intent();
+        setResult(RESULT_OK, backIntent);
+        finish();
+    }
+
+    private void logout(){
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Logout");
+        alertDialog.setMessage("Are you sure you wish to logout?");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(GalleryActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alertDialog.show();
     }
 
     private void onGalleryUpdate() {
@@ -116,7 +191,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         }
     }
 
-    public void deleteImagesButton(View view){
+    public void deleteImagesButton(){
         if(adapter.getSelectedImages().size() == 0) {
             showMessage("No images selected to delete.");
             return;
@@ -144,18 +219,12 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         alertDialog.show();
     }
 
-    public void addImageButton(View view) {
+    public void addImageButton() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,"Select Picture"), RC_ADD_IMAGES);
-    }
-
-    public void okButton(View view) {
-        Intent backIntent = new Intent();
-        setResult(RESULT_OK, backIntent);
-        finish();
     }
 
     private void showMessage(String msg){
@@ -164,14 +233,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
 
     @Override
     public void onBackPressed() {
-        if(adapter.getIsSelecting()) {
-            adapter.triggerSelecting();
-        }
-        else {
-            Intent backIntent = new Intent();
-            setResult(RESULT_OK, backIntent);
-            finish();
-        }
+        backButton();
     }
 
     @Override

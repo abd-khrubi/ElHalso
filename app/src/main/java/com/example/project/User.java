@@ -45,6 +45,17 @@ public class User {
         return favorites == null ? new ArrayList<String>() : favorites;
     }
 
+    public void addFavoriteBusiness(String businessID){
+        favorites = getFavorites();
+        if(!favorites.contains(businessID))
+            favorites.add(businessID);
+    }
+
+    public void removeFavoriteBusiness(String businessID){
+        favorites = getFavorites();
+        favorites.remove(businessID);
+    }
+
     public void setBusinessID(String businessID) {
         this.businessID = businessID;
     }

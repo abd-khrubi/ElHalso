@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
@@ -18,6 +19,8 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -59,6 +62,8 @@ public class LoginActivity extends AppCompatActivity {
     private CallbackManager mCallerbackManager;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mFirebaseAuth;
+    private Menu menu;
+
     private static final String TAG = "LoginAuthentication";
     private boolean isBusinessLogin;
     private static final int RC_GOOGLE_SIGN_IN = 901;
@@ -71,12 +76,15 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ((ImageView)findViewById(R.id.temp)).setBackgroundColor(Color.parseColor("#FF009688"));
         mFirebaseAuth = FirebaseAuth.getInstance();
 //        mFirebaseAuth.signOut();
         setupFacebookLogin();
         setupGoogleLogin();
         isBusinessLogin = false;
+
+        setSupportActionBar((Toolbar) findViewById(R.id.loginToolbar));
+        getSupportActionBar().setTitle(getString(R.string.app_name));
+        getSupportActionBar().setSubtitle("Login");
     }
 
     public void emailLogin(View v){

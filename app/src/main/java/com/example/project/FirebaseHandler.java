@@ -303,10 +303,14 @@ public class FirebaseHandler {
 
     private void updateUserFavorites(User user, Business business, boolean isAdding) {
         FieldValue value;
-        if(isAdding)
+        if(isAdding) {
+            user.addFavoriteBusiness(business.getId());
             value = FieldValue.arrayUnion(business.getId());
-        else
+        }
+        else {
+            user.removeFavoriteBusiness(business.getId());
             value = FieldValue.arrayRemove(business.getId());
+        }
         firestore.collection(USERS).document(user.getId()).update("favorites", value).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

@@ -1,17 +1,25 @@
 package com.example.project;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RatingBar;
 import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
@@ -67,6 +75,7 @@ public class ReviewsActivity extends AppCompatActivity {
     private boolean ownedBusiness;
     private RecyclerView reviewsRecyclerView;
     private ReviewsAdapter adapter;
+    private Menu menu;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,17 +90,69 @@ public class ReviewsActivity extends AppCompatActivity {
             business = ((AppLoader)getApplication()).getBusiness();
             ownedBusiness = true;
         }
+        findViewById(R.id.noReviewsTxt).setVisibility(business.getReviews().size() > 0 ? View.GONE : View.VISIBLE);
 
         reviewsRecyclerView = (RecyclerView) findViewById(R.id.reviewsRecyclerView);
         adapter = new ReviewsAdapter(business.getReviews());
         reviewsRecyclerView.setAdapter(adapter);
         reviewsRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
 
-        findViewById(R.id.addReviewBtn).setVisibility(!ownedBusiness ? View.VISIBLE : View.GONE);
-        ((TextView)findViewById(R.id.nameTxt)).setText(business.getName());
+        setSupportActionBar((Toolbar) findViewById(R.id.reviewsToolbar));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(business.getName());
+        getSupportActionBar().setSubtitle("Reviews");
     }
 
-    public void addReviewButton(View view) {
-        // todo: dialog/activity to add review
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
+        getMenuInflater().inflate(R.menu.reviews_menu, menu);
+        menu.findItem(R.id.action_add_review).setVisible(!ownedBusiness);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()){
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            case R.id.action_add_review:
+                addReview();
+                break;
+            case R.id.action_logout:
+                logout();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
+    private void addReview(){
+
+    }
+
+    private void logout(){
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Logout");
+        alertDialog.setMessage("Are you sure you wish to logout?");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(ReviewsActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alertDialog.show();
     }
 }

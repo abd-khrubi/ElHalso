@@ -7,20 +7,25 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.common.io.Files;
+import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -32,6 +37,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     private GalleryAdapter adapter;
     private File galleryFolder;
     private boolean ownedBusiness;
+    private Menu menu;
 
     private static final float EMPTY_TEXT_ALPHA = 0.6f;
 
@@ -57,42 +63,75 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
 
         downloadImages();
 
-//        boolean hasPermission = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-//        if(!hasPermission) {
-//            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, RC_READ_EXTERNAL_PERMISSION);
-//        }
+        setSupportActionBar((Toolbar) findViewById(R.id.businessToolbar));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(!ownedBusiness);
+        getSupportActionBar().setTitle(business.getName());
+        // todo: category subtitle?
     }
 
-//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//
-//        if (requestCode == RC_READ_EXTERNAL_PERMISSION) {
-//            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                Log.d(TAG, "got permission");
-//            } else {
-//                AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-//                alertDialog.setTitle("Permission required");
-//                alertDialog.setMessage("");
-//                alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        dialog.dismiss();
-//                    }
-//                });
-//                alertDialog.show();
-//            }
-//        }
-//    }
-
-    private void fillInBusinessDetails(){
-        ((TextView)findViewById(R.id.nameTxt)).setText(business.getName() != null ? business.getName() : "");
-        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription() != null ? business.getDescription() : "(No description)");
-        ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
-        if(!ownedBusiness){
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
+        getMenuInflater().inflate(R.menu.business_menu, menu);
+        menu.findItem(R.id.action_edit).setVisible(ownedBusiness);
+        menu.findItem(R.id.action_favorite).setVisible(!ownedBusiness);
+        if(!ownedBusiness) {
             User user = ((AppLoader)getApplicationContext()).getUser();
             int toDraw = user.getFavorites().contains(business.getId()) ? R.drawable.ic_is_favorite : R.drawable.ic_is_not_favorite;
-            ((ImageView)findViewById(R.id.editBtn)).setImageDrawable(getDrawable(toDraw));
+            menu.findItem(R.id.action_favorite).setIcon(toDraw);
         }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.home:
+                onBackPressed();
+                break;
+            case R.id.action_edit:
+                editBusiness();
+                break;
+            case R.id.action_favorite:
+                toggleFavorite();
+                break;
+            case R.id.action_logout:
+                logout();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
+    // todo: better as activity abstract class? no need?
+    private void logout(){
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Logout");
+        alertDialog.setMessage("Are you sure you wish to logout?");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(BusinessActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alertDialog.show();
+    }
+
+    private void fillInBusinessDetails(){
+        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription() != null ? business.getDescription() : "(No description)");
+        ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
+        findViewById(R.id.noImagesTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
         setRatingBar();
     }
 
@@ -146,10 +185,6 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             galleryFolder = Files.createTempDir();
             galleryFolder.deleteOnExit();
         }
-
-        findViewById(R.id.editBtn).setVisibility(ownedBusiness ? View.VISIBLE : View.GONE);
-        findViewById(R.id.toggleFavoriteBtn).setVisibility(!ownedBusiness ? View.VISIBLE : View.GONE);
-
     }
 
     private void setupDescription(){
@@ -173,18 +208,24 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         ((RatingBar)findViewById(R.id.ratingBar)).setRating(sum / business.getReviews().size());
     }
 
-    public void editBusiness(View view) {
+    public void editBusiness() {
         Intent intent = new Intent(this, EditBusinessActivity.class);
         startActivityForResult(intent, RC_EDIT_BUSINESS);
     }
 
     public void showReviews(View view){
         Intent intent = new Intent(this, ReviewsActivity.class);
+        if(!ownedBusiness)
+            intent.putExtra("business", business);
         startActivity(intent); // todo: activityForResult to update reviews count?
     }
 
-    public void toggleFavorite(View view) {
-
+    public void toggleFavorite() {
+        Log.d(TAG, "toggling favorite");
+        User user = ((AppLoader)getApplicationContext()).getUser();
+        FirebaseHandler.getInstance().addFavoriteBusiness(user, business);
+        int toDraw = user.getFavorites().contains(business.getId()) ? R.drawable.ic_is_favorite : R.drawable.ic_is_not_favorite;
+        menu.findItem(R.id.action_favorite).setIcon(toDraw);
     }
 
     public void showGallery(View view) {
@@ -225,5 +266,15 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             image.delete();
         }
         galleryFolder.delete();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == RC_EDIT_BUSINESS && resultCode == RESULT_OK){
+            fillInBusinessDetails();
+            downloadImages();
+        }
     }
 }

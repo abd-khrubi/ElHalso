@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -44,6 +46,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     private ArrayList<String> selectedImages;
     private StartDragListener startDragListener;
     private File galleryFolder;
+    private MutableLiveData<Integer> selectedImagesSize;
 
     private static final String TAG = "GalleryAdapter";
 
@@ -52,10 +55,15 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         this.gallery = gallery;
         this.galleryFolder = galleryFolder;
         this.selectedImages = new ArrayList<>();
+        this.selectedImagesSize = new MutableLiveData<>();
         this.selecting = false;
         this.isEditMode = isEditMode;
         this.startDragListener = startDragListener;
         this.downloadedGallery = new ArrayList<>();
+    }
+
+    public LiveData<Integer> getSelectedImagesSize() {
+        return selectedImagesSize;
     }
 
     public void addDownloadedImage(String imageName){
@@ -79,6 +87,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         selecting = !selecting;
         if(!selecting) {
             selectedImages.clear();
+            selectedImagesSize.postValue(selectedImages.size());
         }
         notifyDataSetChanged();
     }
@@ -116,9 +125,11 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                             triggerSelecting();
                             return;
                         }
+                        selectedImagesSize.postValue(selectedImages.size());
                     }
                     else {
                         selectedImages.add(gallery.get(position));
+                        selectedImagesSize.postValue(selectedImages.size());
                     }
                     notifyItemChanged(position);
                     return;
@@ -141,6 +152,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                     return true;
                 }
                 selectedImages.add(gallery.get(position));
+                selectedImagesSize.postValue(selectedImages.size());
                 triggerSelecting();
                 return true;
             }
@@ -148,7 +160,6 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     }
 
     private void viewImageInDefaultViewer(int position) {
-        // todo: view image
         Log.d(TAG, "viewing image " + gallery.get(position) + " at adapter " + (position + 1));
         Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);

@@ -1,20 +1,27 @@
 package com.example.project;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.Observer;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -28,6 +35,7 @@ public class EditBusinessActivity extends AppCompatActivity {
     private EditText nameTxt;
     private EditText descriptionTxt;
     private File galleryFolder;
+    private Menu menu;
 
     private static final int RC_EDIT_GALLERY = 481;
     private static final int RC_CHANGE_LOGO = 543;
@@ -38,12 +46,65 @@ public class EditBusinessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_business);
         business = ((AppLoader) getApplicationContext()).getBusiness();
-        onBusinessUpdate();
-        fillInBusinessDetails(savedInstanceState);
         galleryFolder = new File(getFilesDir(), business.getId());
         if(!galleryFolder.exists())
             galleryFolder.mkdir();
+        onBusinessUpdate();
+        fillInBusinessDetails(savedInstanceState);
         Log.d(TAG, business.getId());
+
+        setSupportActionBar((Toolbar) findViewById(R.id.editBusinessToolbar));
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(business.getName());
+        getSupportActionBar().setSubtitle("Edit");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        this.menu = menu;
+        getMenuInflater().inflate(R.menu.edit_business_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()){
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            case R.id.action_save:
+                saveBusiness();
+                break;
+            case R.id.action_logout:
+                logout();
+                break;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
+    private void logout(){
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Logout");
+        alertDialog.setMessage("Are you sure you wish to logout?");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                FirebaseAuth.getInstance().signOut();
+                Intent intent = new Intent(EditBusinessActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+            }
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        alertDialog.show();
     }
 
     private void onBusinessUpdate() {
@@ -80,11 +141,12 @@ public class EditBusinessActivity extends AppCompatActivity {
         descriptionTxt.setText(business.getDescription() == null ? "" : business.getDescription());
         if(business.getLogo() != null) {
             File logo = new File(galleryFolder, business.getLogo());
+            Log.d(TAG, logo.getAbsolutePath());
             Picasso.get().load(Uri.fromFile(logo)).fit().into(logoImg);
         }
     }
 
-    public void saveBusiness(View view) {
+    public void saveBusiness() {
         if(!validateDetails()) {
             return;
         }
@@ -105,6 +167,7 @@ public class EditBusinessActivity extends AppCompatActivity {
             ImageUploader.addImageUpload(getApplicationContext(), business, newLogoUri, true);
         }
         FirebaseHandler.getInstance().updateEditedBusiness(business);
+        setResult(RESULT_OK);
         finish();
     }
 
