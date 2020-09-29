@@ -12,6 +12,7 @@ public class UploadBroadcastReceiver extends BroadcastReceiver {
     private final MutableLiveData<String> newImage  = new MutableLiveData<>();
     private Business business;
     private boolean isLogo;
+    private boolean uploaded;
 
     private static final String TAG = "UploadReceiver";
 
@@ -22,6 +23,7 @@ public class UploadBroadcastReceiver extends BroadcastReceiver {
 
         business = intent.getParcelableExtra("business");
         isLogo = intent.getBooleanExtra("isLogo", false);
+        uploaded = intent.getBooleanExtra("uploaded", false);
         newImage.postValue(intent.getStringExtra("newImage"));
     }
 
@@ -35,5 +37,9 @@ public class UploadBroadcastReceiver extends BroadcastReceiver {
 
     public boolean isLogo() {
         return isLogo;
+    }
+
+    public boolean isUploaded() {
+        return uploaded;
     }
 }

@@ -127,7 +127,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
                 deleteImagesButton();
                 break;
             case R.id.action_logout:
-                logout();
+                ((AppLoader)getApplicationContext()).logout(this);
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -180,15 +180,19 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
                     return;
                 }
                 business.addImage(s);
-                downloadImages();
+                downloadImage(s);
             }
         });
     }
 
     private void downloadImages() {
         for(String image : business.getGallery()){
-            ImageDownloader.getImage(image, business.getId(), !isEditable, galleryFolder, this);
+            downloadImage(image);
         }
+    }
+
+    private void downloadImage(String image) {
+        ImageDownloader.getImage(image, business.getId(), !isEditable, galleryFolder, this);
     }
 
     public void deleteImagesButton(){
@@ -259,6 +263,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             for(int i=0;i<imageList.size();i++) {
                 ImageUploader.addImageUpload(getApplicationContext(), business, imageList.get(i), false);
             }
+            adapter.notifyDataSetChanged();
         }
     }
 
