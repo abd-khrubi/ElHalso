@@ -35,6 +35,7 @@ public class EditBusinessActivity extends AppCompatActivity {
     private EditText nameTxt;
     private EditText descriptionTxt;
     private File galleryFolder;
+    private boolean startedHere;
     private Menu menu;
 
     private static final int RC_EDIT_GALLERY = 481;
@@ -46,6 +47,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_business);
         business = ((AppLoader) getApplicationContext()).getBusiness();
+        startedHere = business.getName() == null;
         galleryFolder = new File(getFilesDir(), business.getId());
         if(!galleryFolder.exists())
             galleryFolder.mkdir();
@@ -144,6 +146,10 @@ public class EditBusinessActivity extends AppCompatActivity {
             ImageUploader.addImageUpload(getApplicationContext(), business, newLogoUri, true);
         }
         FirebaseHandler.getInstance().updateEditedBusiness(business);
+        if(startedHere) {
+            Intent intent = new Intent(this, BusinessActivity.class);
+            startActivity(intent);
+        }
         setResult(RESULT_OK);
         finish();
     }
@@ -157,7 +163,8 @@ public class EditBusinessActivity extends AppCompatActivity {
 
     private boolean detailsChanged() {
         String origDescription = business.getDescription() != null ? business.getDescription() : "";
-        return !business.getName().equals(nameTxt.getText().toString())
+        String origName = business.getName() != null ? business.getName() : "";
+        return !origName.equals(nameTxt.getText().toString())
                 || !origDescription.equals(descriptionTxt.getText().toString())
                 || (newLogoUri != null);
 //                && locationChanged;

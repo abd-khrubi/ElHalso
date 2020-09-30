@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -71,9 +72,12 @@ public class EmailLoginActivity extends AppCompatActivity {
         TextView passTxt = (TextView) findViewById(R.id.passTxt);
         TextView pass2Txt = (TextView) findViewById(R.id.pass2Txt);
         Button signBtn = (Button) findViewById(R.id.signBtn);
+        Button resetBtn = (Button) findViewById(R.id.resetBtn);
+
 
         nameTxt.setVisibility(signupMode ? View.VISIBLE : View.GONE);
         pass2Txt.setVisibility(signupMode ? View.VISIBLE : View.GONE);
+        resetBtn.setVisibility(!signupMode ? View.VISIBLE : View.GONE);
 
         ConstraintLayout layout = findViewById(R.id.emailLayout);
         ConstraintSet set = new ConstraintSet();
@@ -120,6 +124,22 @@ public class EmailLoginActivity extends AppCompatActivity {
         return true;
     }
 
+    public void resetPassword(View view) {
+        String email = ((EditText)findViewById(R.id.emailTxt)).getText().toString();
+        FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "Email sent.");
+                        }
+                        else {
+                            Log.d(TAG, "Failed to send email. " + task.getException().toString());
+                        }
+                    }
+                });
+    }
+
     private void showMessage(String msg){
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
@@ -130,59 +150,79 @@ public class EmailLoginActivity extends AppCompatActivity {
 
         String email = ((EditText)findViewById(R.id.emailTxt)).getText().toString();
         String pass = ((EditText)findViewById(R.id.passTxt)).getText().toString();
-        final FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
 
         if(signupMode){
-            final String name = ((EditText)findViewById(R.id.nameTxt)).getText().toString();
-            mFirebaseAuth.createUserWithEmailAndPassword(email, pass)
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "Sign up success");
-
-                                // updating user name
-                                UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
-                                        .setDisplayName(name)
-                                        .build();
-                                mFirebaseAuth.getCurrentUser().updateProfile(profile).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if(task.isSuccessful())
-                                            Log.d(TAG, "Name update success");
-                                        else
-                                            Log.d(TAG, "Name update failed");
-
-                                        Intent intent = new Intent();
-                                        setResult(Activity.RESULT_OK, intent);
-                                        finish();
-                                    }
-                                });
-                            } else {
-                                Log.d(TAG, "Authentication failed", task.getException());
-                                showMessage("Sign up failed. Please try again later.");
-                            }
-
-                        }
-                    });
+            signup(email, pass);
         }
         else {
-            mFirebaseAuth.signInWithEmailAndPassword(email, pass)
-                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "Authentication success");
-                                Intent intent = new Intent();
-                                setResult(Activity.RESULT_OK, intent);
-                                finish();
-                            } else {
-                                Log.d(TAG, "Authentication failed", task.getException());
-                                showMessage("Authentication failed!");
-                            }
-                        }
-                    });
+            signin(email, pass);
         }
+    }
 
+    private void signin(String email, String password) {
+        final FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
+
+        mFirebaseAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            if(!task.getResult().getUser().isEmailVerified()){
+                                showMessage("Please verify your email first!");
+                                return;
+                            }
+                            Log.d(TAG, "Authentication success");
+                            Intent intent = new Intent();
+                            setResult(Activity.RESULT_OK, intent);
+                            finish();
+                        } else {
+                            Log.d(TAG, "Authentication failed", task.getException());
+                            showMessage("Authentication failed!");
+                        }
+                    }
+                });
+    }
+
+    private void signup(String email, String password) {
+        final FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
+        final String name = ((EditText)findViewById(R.id.nameTxt)).getText().toString();
+
+        mFirebaseAuth.createUserWithEmailAndPassword(email, password)
+                .continueWithTask(new Continuation<AuthResult, Task<Void>>() {
+                    @Override
+                    public Task<Void> then(@NonNull Task<AuthResult> task) throws Exception {
+                        if(task.isSuccessful()){
+                            UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
+                                    .setDisplayName(name)
+                                    .build();
+                            return mFirebaseAuth.getCurrentUser().updateProfile(profile);
+                        } else {
+                            Log.d(TAG, "Authentication failed ", task.getException());
+                            showMessage("Email already in use. Please choose a different one.");
+                            return null;
+                        }
+                    }
+                }).continueWithTask(new Continuation<Void, Task<Void>>() {
+            @Override
+            public Task<Void> then(@NonNull Task<Void> task) throws Exception {
+                if(task.isSuccessful()){
+                    return mFirebaseAuth.getCurrentUser().sendEmailVerification();
+                } else {
+                    Log.d(TAG, "Failed to update user");
+                    return null;
+                }
+            }
+        }).addOnCompleteListener(this, new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    showMessage("Verification Email sent");
+                } else {
+                    Log.d(TAG, "Authentication failed", task.getException());
+                    showMessage("Sign up failed. Please try again later.");
+                }
+
+            }
+        });
     }
 }
