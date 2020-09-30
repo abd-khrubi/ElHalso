@@ -112,7 +112,16 @@ public class EditBusinessActivity extends AppCompatActivity {
         descriptionTxt = (EditText) findViewById(R.id.descriptionTxt);
 
         if(savedInstanceState != null){
-            // ToDo if rotation
+            nameTxt.setText(savedInstanceState.getString("name"));
+            descriptionTxt.setText(savedInstanceState.getString("description"));
+            if(savedInstanceState.containsKey("newLogo")){
+                Picasso.get().load(Uri.parse(savedInstanceState.getString("newLogo"))).fit().into(logoImg);
+            }
+            else if(business.getLogo() != null) {
+                File logo = new File(galleryFolder, business.getLogo());
+                Log.d(TAG, logo.getAbsolutePath());
+                Picasso.get().load(Uri.fromFile(logo)).fit().into(logoImg);
+            }
             return;
         }
 
@@ -211,8 +220,12 @@ public class EditBusinessActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-//        ((AppLoader)getApplicationContext()).getUploadReceiver().getNewImage().removeObservers(this); // todo: need?
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("name", nameTxt.getText().toString());
+        outState.putString("description", descriptionTxt.getText().toString());
+        if(newLogoUri != null)
+            outState.putString("newLogo", newLogoUri.toString());
+        // todo: location
     }
 }

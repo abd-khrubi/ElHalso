@@ -37,6 +37,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
 
     private static final int RC_EDIT_BUSINESS = 974;
     private static final int RC_GALLERY = 374;
+    private static final int RC_REVIEWS = 647;
     private static final int RC_READ_EXTERNAL_PERMISSION = 675;
 
     private static final String TAG = "BusinessActivity";
@@ -61,7 +62,17 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         setSupportActionBar((Toolbar) findViewById(R.id.businessToolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(!ownedBusiness);
         getSupportActionBar().setTitle(business.getName());
-        // todo: category subtitle?
+    }
+
+    public void descriptionClick(View view) {
+        TextView descriptionTxt = findViewById(R.id.descriptionTxt);
+        int maxLines = getResources().getInteger(R.integer.description_text_default_lines);
+        if(descriptionTxt.getMaxLines() == maxLines) {
+            descriptionTxt.setMaxLines(Integer.MAX_VALUE);
+        }
+        else {
+            descriptionTxt.setMaxLines(maxLines);
+        }
     }
 
     @Override
@@ -89,6 +100,12 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
                 break;
             case R.id.action_favorite:
                 toggleFavorite();
+                break;
+            case R.id.action_gallery:
+                showGallery(null);
+                break;
+            case R.id.action_reviews:
+                showReviews(null);
                 break;
             case R.id.action_logout:
                 ((AppLoader)getApplicationContext()).logout(this);
@@ -161,12 +178,13 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     private void setupDescription(){
         TextView descriptionView = findViewById(R.id.descriptionTxt);
         String description = business.getDescription();
-        descriptionView.setText(description);
         Log.d(TAG,descriptionView.getLineCount() + "");
-        descriptionView.setText(description != null ? business.getDescription() : "(No description)");
+        descriptionView.setText(description != null && description.trim().equals("") ? business.getDescription() : "(No description)");
         if(description == null || description.trim().equals("")){
             descriptionView.setAlpha(EMPTY_TEXT_ALPHA);
         }
+
+
 
 //        Log.d(TAG, descriptionView.getLayout().getLineEnd(3) + " in line 3");
     }
@@ -188,7 +206,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         Intent intent = new Intent(this, ReviewsActivity.class);
         if(!ownedBusiness)
             intent.putExtra("business", business);
-        startActivity(intent); // todo: activityForResult to update reviews count?
+        startActivityForResult(intent, RC_REVIEWS);
     }
 
     public void toggleFavorite() {
@@ -250,7 +268,9 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         else if(requestCode == RC_GALLERY && ownedBusiness) {
             downloadImages();
         }
+        else if(requestCode == RC_REVIEWS && !ownedBusiness) {
+            ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
+            setRatingBar();
+        }
     }
-
-    // todo: business gallery not updating? better sync?
 }

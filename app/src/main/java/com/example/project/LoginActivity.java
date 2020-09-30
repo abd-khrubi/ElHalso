@@ -57,7 +57,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-
+// todo: add appropriate "loading" when syncing
 public class LoginActivity extends AppCompatActivity {
     private CallbackManager mCallerbackManager;
     private GoogleSignInClient mGoogleSignInClient;
@@ -126,6 +126,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         if(FirebaseAuth.getInstance().getCurrentUser() != null){
+            // todo: business or user?
             successfulLogin();
         }
     }

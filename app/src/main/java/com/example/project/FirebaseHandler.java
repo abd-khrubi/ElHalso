@@ -275,10 +275,14 @@ public class FirebaseHandler {
 
     private void updateBusinessReviews(final Business business, Review review, boolean isAdding){
         FieldValue value;
-        if(isAdding)
+        if(isAdding) {
+            business.addReview(review);
             value = FieldValue.arrayUnion(review);
-        else
+        }
+        else {
+            business.removeReview(review);
             value = FieldValue.arrayRemove(review);
+        }
         firestore.collection(BUSINESS).document(business.getId()).update("reviews", value).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

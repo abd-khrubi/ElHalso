@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-// todo: update firestore when gallery is rearranged
 public class GalleryActivity extends AppCompatActivity implements  StartDragListener,
         ImageDownloader.DownloadCallback{
 

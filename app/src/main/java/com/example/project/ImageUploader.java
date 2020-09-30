@@ -119,14 +119,8 @@ public class ImageUploader extends ListenableWorker {
                         Log.d(TAG, "putting storage file is " + task.isSuccessful());
                         if (!task.isSuccessful()) {
                             Log.e(TAG, task.getException().toString());
-//                    throw task.getException();
+                            return null;
                         }
-//                try {
-//                      todo: not getting permissions for copy..
-//                    copyImageToAppDir(imageName);
-//                } catch (Exception e) {
-//                    Log.e(TAG, e.toString());
-//                }
                         if (isLogo) {
                             return FirebaseFirestore.getInstance().collection("business").document(businessID).update("logo", imageName);
                         } else {

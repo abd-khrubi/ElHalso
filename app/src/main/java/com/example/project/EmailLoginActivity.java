@@ -41,7 +41,7 @@ public class EmailLoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_email_login);
         signupMode = true;
-        changeSignMode(findViewById(R.id.signinBtn));
+        changeSignMode(null);
 
         setSupportActionBar((Toolbar) findViewById(R.id.emailLoginToolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -62,24 +62,20 @@ public class EmailLoginActivity extends AppCompatActivity {
     }
 
     public void changeSignMode(View v){
-        boolean toSignupMode = v.getId() == R.id.signupBtn;
-        if(signupMode == toSignupMode)
-            return;
-
-        signupMode = toSignupMode;
         TextView emailTxt = (TextView) findViewById(R.id.emailTxt);
         TextView nameTxt = (TextView) findViewById(R.id.nameTxt);
         TextView passTxt = (TextView) findViewById(R.id.passTxt);
         TextView pass2Txt = (TextView) findViewById(R.id.pass2Txt);
+        TextView changeSignBtn = (Button) findViewById(R.id.changeSignBtn);
         Button signBtn = (Button) findViewById(R.id.signBtn);
         Button resetBtn = (Button) findViewById(R.id.resetBtn);
 
+        signupMode = !signupMode;
 
         nameTxt.setVisibility(signupMode ? View.VISIBLE : View.GONE);
         pass2Txt.setVisibility(signupMode ? View.VISIBLE : View.GONE);
         resetBtn.setVisibility(!signupMode ? View.VISIBLE : View.GONE);
 
-        ConstraintLayout layout = findViewById(R.id.emailLayout);
         ConstraintSet set = new ConstraintSet();
         if(signupMode){
             set.connect(nameTxt.getId(), ConstraintSet.TOP, emailTxt.getId(), ConstraintSet.BOTTOM, 20);
@@ -87,11 +83,13 @@ public class EmailLoginActivity extends AppCompatActivity {
             set.connect(pass2Txt.getId(), ConstraintSet.TOP, passTxt.getId(), ConstraintSet.BOTTOM, 20);
             set.connect(signBtn.getId(), ConstraintSet.TOP, pass2Txt.getId(), ConstraintSet.BOTTOM, 20);
             signBtn.setText("Sign up");
+            changeSignBtn.setText("Sign in");
         }
         else {
             set.connect(passTxt.getId(), ConstraintSet.TOP, emailTxt.getId(), ConstraintSet.BOTTOM, 20);
             set.connect(signBtn.getId(), ConstraintSet.TOP, passTxt.getId(), ConstraintSet.BOTTOM, 20);
             signBtn.setText("Sign in");
+            changeSignBtn.setText("Sign up");
         }
     }
 

@@ -1,78 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".EditBusinessActivity">
+    android:layout_height="match_parent">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/editBusinessToolbar"
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        android:layout_height="match_parent"
+        tools:context=".EditBusinessActivity">
 
-    <ImageButton
-        android:id="@+id/logoImgBtn"
-        android:layout_width="@dimen/business_logo_width"
-        android:layout_height="@dimen/business_logo_height"
-        android:layout_marginTop="10dp"
-        android:onClick="changeLogoButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editBusinessToolbar"
-        app:srcCompat="@mipmap/ic_launcher" />
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/editBusinessToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-    <EditText
-        android:id="@+id/nameTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="50dp"
-        android:hint="Business Name"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/logoImgBtn" />
+        <ImageButton
+            android:id="@+id/logoImgBtn"
+            android:layout_width="@dimen/business_logo_width"
+            android:layout_height="@dimen/business_logo_height"
+            android:layout_marginTop="10dp"
+            android:onClick="changeLogoButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editBusinessToolbar"
+            app:srcCompat="@mipmap/ic_launcher" />
 
-    <EditText
-        android:id="@+id/descriptionTxt"
-        android:inputType="textMultiLine"
-        android:lines="4"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="30dp"
-        android:hint="Description"
-        app:layout_constraintStart_toStartOf="@+id/nameTxt"
-        app:layout_constraintTop_toBottomOf="@+id/nameTxt" />
+        <EditText
+            android:id="@+id/nameTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="50dp"
+            android:hint="Business Name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/logoImgBtn" />
 
-    <Button
-        android:id="@+id/setLocationBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="100dp"
-        android:layout_marginEnd="50dp"
-        android:onClick="setLocationButton"
-        android:text="Set Location"
-        android:textAllCaps="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descriptionTxt" />
+        <EditText
+            android:id="@+id/descriptionTxt"
+            android:inputType="textMultiLine"
+            android:lines="4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="30dp"
+            android:hint="Description"
+            app:layout_constraintStart_toStartOf="@+id/nameTxt"
+            app:layout_constraintTop_toBottomOf="@+id/nameTxt" />
 
-    <Button
-        android:id="@+id/editGalleryBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="100dp"
-        android:onClick="editGalleryButton"
-        android:text="Edit Gallery"
-        android:textAllCaps="false"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descriptionTxt" />
+        <Button
+            android:id="@+id/setLocationBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp"
+            android:layout_marginEnd="50dp"
+            android:onClick="setLocationButton"
+            android:text="Set Location"
+            android:textAllCaps="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descriptionTxt" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+            android:id="@+id/editGalleryBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="50dp"
+            android:layout_marginTop="100dp"
+            android:onClick="editGalleryButton"
+            android:text="Edit Gallery"
+            android:textAllCaps="false"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/descriptionTxt" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

@@ -39,8 +39,15 @@ public class ReviewsActivity extends AppCompatActivity {
         public void setReview(Review review) {
             usernameTxt.setText(review.getUserName());
             ratingBar.setRating(review.getRating());
-            reviewTxt.setText(review.getText());
-
+            String reviewText = review.getText();
+            if(reviewText == null || reviewText.trim().equals("")){
+                reviewText = "(No text)";
+                reviewTxt.setAlpha(0.7f);
+            }
+            else {
+                reviewTxt.setAlpha(1f);
+            }
+            reviewTxt.setText(reviewText);
         }
     }
 
@@ -56,7 +63,19 @@ public class ReviewsActivity extends AppCompatActivity {
         @Override
         public ReviewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             Context context = parent.getContext();
-            View view = LayoutInflater.from(context).inflate(R.layout.image_item, parent, false);
+            View view = LayoutInflater.from(context).inflate(R.layout.review_item, parent, false);
+            view.findViewById(R.id.reviewTxt).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int maxLines = getResources().getInteger(R.integer.review_text_default_lines);
+                    if(((TextView)v).getMaxLines() == maxLines) {
+                        ((TextView)v).setMaxLines(Integer.MAX_VALUE);
+                    }
+                    else {
+                        ((TextView)v).setMaxLines(maxLines);
+                    }
+                }
+            });
             return new ReviewHolder(view);
         }
 

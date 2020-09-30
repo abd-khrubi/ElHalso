@@ -12,9 +12,17 @@
         android:title="Add to favorites"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_gallery"
+        android:icon="@drawable/ic_action_gallery"
+        android:title="Gallery"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_reviews"
+        android:icon="@drawable/ic_action_add_review"
+        android:title="Reviews"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_logout"
         android:title="Logout"
         app:showAsAction="never" />
-
-<!--    todo: reviews?-->
 </menu>
