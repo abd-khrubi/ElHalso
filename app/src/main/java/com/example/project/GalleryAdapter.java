@@ -47,6 +47,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     private StartDragListener startDragListener;
     private File galleryFolder;
     private MutableLiveData<Integer> selectedImagesSize;
+    private boolean orderChanged;
 
     private static final String TAG = "GalleryAdapter";
 
@@ -60,6 +61,11 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         this.isEditMode = isEditMode;
         this.startDragListener = startDragListener;
         this.downloadedGallery = new ArrayList<>();
+        this.orderChanged = false;
+    }
+
+    public boolean isOrderChanged() {
+        return orderChanged;
     }
 
     public LiveData<Integer> getSelectedImagesSize() {
@@ -174,6 +180,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     @Override
     public void onImageMoved(int fromPosition, int toPosition) {
+        if(fromPosition != toPosition)
+            orderChanged = true;
         String toSwap = gallery.remove(fromPosition);
         gallery.add(toPosition, toSwap);
         notifyItemMoved(fromPosition, toPosition);

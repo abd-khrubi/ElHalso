@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.work.WorkManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -47,7 +48,7 @@ public class AppLoader extends Application {
     }
 
     public void logout(final Context context){
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        AlertDialog alertDialog = new AlertDialog.Builder(context).create();
         alertDialog.setTitle("Logout");
         alertDialog.setMessage("Are you sure you wish to logout?");
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {

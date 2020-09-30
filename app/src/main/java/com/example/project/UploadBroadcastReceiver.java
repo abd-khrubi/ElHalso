@@ -10,7 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 public class UploadBroadcastReceiver extends BroadcastReceiver {
 
     private final MutableLiveData<String> newImage  = new MutableLiveData<>();
-    private Business business;
+    private String businessID;
     private boolean isLogo;
     private boolean uploaded;
 
@@ -21,7 +21,7 @@ public class UploadBroadcastReceiver extends BroadcastReceiver {
         if(!intent.getAction().equals(AppLoader.UPLOAD_BROADCAST))
             return;
 
-        business = intent.getParcelableExtra("business");
+        businessID = intent.getStringExtra("businessID");
         isLogo = intent.getBooleanExtra("isLogo", false);
         uploaded = intent.getBooleanExtra("uploaded", false);
         newImage.postValue(intent.getStringExtra("newImage"));
@@ -31,8 +31,8 @@ public class UploadBroadcastReceiver extends BroadcastReceiver {
         return newImage;
     }
 
-    public Business getBusiness() {
-        return business;
+    public String getBusinessID() {
+        return businessID;
     }
 
     public boolean isLogo() {

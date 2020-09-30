@@ -1,9 +1,6 @@
 package com.example.project;
 
-import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,16 +13,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.common.io.Files;
-import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -42,6 +36,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     private static final float EMPTY_TEXT_ALPHA = 0.6f;
 
     private static final int RC_EDIT_BUSINESS = 974;
+    private static final int RC_GALLERY = 374;
     private static final int RC_READ_EXTERNAL_PERMISSION = 675;
 
     private static final String TAG = "BusinessActivity";
@@ -96,7 +91,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
                 toggleFavorite();
                 break;
             case R.id.action_logout:
-                logout();
+                ((AppLoader)getApplicationContext()).logout(this);
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -104,32 +99,9 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         return true;
     }
 
-    // todo: better as activity abstract class? no need?
-    private void logout(){
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle("Logout");
-        alertDialog.setMessage("Are you sure you wish to logout?");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(BusinessActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            }
-        });
-        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        alertDialog.show();
-    }
-
     private void fillInBusinessDetails(){
-        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription() != null ? business.getDescription() : "(No description)");
+        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription() != null ||
+                business.getDescription().trim().equals("") ? business.getDescription() : "(No description)");
         ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
         findViewById(R.id.noImagesTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
         setRatingBar();
@@ -140,28 +112,27 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         uploadReceiver.getNewImage().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                if(s == null || !business.getId().equals(uploadReceiver.getBusiness().getId()))
+                if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()))
                     return;
                 if(uploadReceiver.isLogo()) {
                     business.setLogo(s);
                 }
-                else {
-                    business.addImage(s);
-                    adapter.notifyItemInserted(business.getGallery().indexOf(s));
-                }
-                downloadImages();
-                fillInBusinessDetails();
+                downloadImage(s);
             }
         });
+    }
+
+    private void downloadImage(String image) {
+        ImageDownloader.getImage(image, business.getId(), !ownedBusiness, galleryFolder, this);
     }
 
     private void downloadImages() {
         if(business.getLogo() != null) {
             Log.d(TAG, "adding logo <"+business.getLogo()+">");
-            ImageDownloader.getImage(business.getLogo(), business.getId(), !ownedBusiness, galleryFolder, this);
+            downloadImage(business.getLogo());
         }
         for(String image : business.getGallery()){
-            ImageDownloader.getImage(image, business.getId(), !ownedBusiness, galleryFolder, this);
+            downloadImage(image);
         }
     }
 
@@ -233,9 +204,8 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         if(!ownedBusiness) {
             intent.putExtra("business", business);
             intent.putExtra("galleryFolder", galleryFolder.getAbsolutePath());
-
         }
-        startActivity(intent);
+        startActivityForResult(intent, RC_GALLERY);
     }
 
     @Override
@@ -252,6 +222,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
                     Picasso.get().load(Uri.fromFile(imageFile)).fit().into(image);
                     return;
                 }
+                findViewById(R.id.noImagesTxt).setVisibility(View.GONE);
                 adapter.addDownloadedImage(imageName);
             }
         });
@@ -276,5 +247,10 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             fillInBusinessDetails();
             downloadImages();
         }
+        else if(requestCode == RC_GALLERY && ownedBusiness) {
+            downloadImages();
+        }
     }
+
+    // todo: business gallery not updating? better sync?
 }

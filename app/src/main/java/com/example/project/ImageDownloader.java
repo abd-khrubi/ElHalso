@@ -38,7 +38,7 @@ class ImageDownloader {
     }
 
     synchronized private static void bgDownload(final String imageName, final String businessID, final boolean isTemp, final File downloadFolder) {
-        bgExecutor.execute(new Runnable() {
+        ThreadingHelper.runAsyncInBackground(new Runnable() {
             @Override
             public void run() {
                 File localFile;

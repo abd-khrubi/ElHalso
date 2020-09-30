@@ -122,6 +122,14 @@ public class LoginActivity extends AppCompatActivity {
         alertD.show();
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(FirebaseAuth.getInstance().getCurrentUser() != null){
+            successfulLogin();
+        }
+    }
+
     private void updateLoginType(boolean isBusiness){
         if(this.isBusinessLogin == isBusiness)
             return;
@@ -275,71 +283,6 @@ public class LoginActivity extends AppCompatActivity {
         intent = new Intent(this, business.getName() == null ? EditBusinessActivity.class : BusinessActivity.class);
         startActivity(intent);
         finish();
-//        final LiveData<Boolean> update = FirebaseHandler.getInstance().getUpdate();
-//        GeoPoint myLoc = new GeoPoint(32.818209, 35.250729);
-//        FirebaseHandler.getInstance().fetchNearbyBusinesses(myLoc, 5);
-//        update.observe(this, new Observer<Boolean>() {
-//            @Override
-//            public void onChanged(Boolean aBoolean) {
-//                if(!aBoolean)
-//                    return;
-//                update.removeObserver(this);
-//                Log.d(TAG, "size: " + ((ArrayList<Business>) FirebaseHandler.getInstance().getUpdatedObject()).size());
-//                for(Business business : (ArrayList<Business>) FirebaseHandler.getInstance().getUpdatedObject()){
-//                    Log.d(TAG, business.getName());
-//                }
-//            }
-//        });
-//        FirebaseHandler.getInstance().fetchImageForBusiness(business, "oc.jpg", this.getFilesDir());
-//        Intent intent = new Intent();
-//        intent.setAction(Intent.ACTION_VIEW);
-//        intent.setDataAndType(Uri.withAppendedPath(Uri.fromFile(this.getFilesDir()), business.getId()), "image/*");
-//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-//        startActivity(intent);
-//        Intent intent = new Intent();
-//        intent.setType("image/*");
-//        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-//        intent.setAction(Intent.ACTION_GET_CONTENT);
-//        startActivityForResult(Intent.createChooser(intent,"Select Picture"), 177);
-//
-//        if(requestCode == SELECT && resultCode == RESULT_OK) {
-//            if(data.getClipData() != null) {
-//                ArrayList<Uri> list = new ArrayList<>();
-//
-//                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
-//                    list.add(data.getClipData().getItemAt(i).getUri());
-//                }
-//                Bitmap bitmap1 = null, bitmap2 = null;
-//                try {
-//                    bitmap1 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), list.get(0));
-//                    bitmap2 = MediaStore.Images.Media.getBitmap(this.getContentResolver(), list.get(1));
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                bitmap1 = Bitmap.createScaledBitmap(bitmap1,150, 150, true);
-//                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap1);
-//                bitmap2 = Bitmap.createScaledBitmap(bitmap2,150, 150, true);
-//                ((ImageButton)findViewById(R.id.tempImg2)).setImageBitmap(bitmap2);
-//            }
-//            else if(data.getData() != null){
-//                Uri uri = data.getData();
-////                FirebaseHandler.getInstance().addImageToBusinessGallery(new Business(), uri, "image2.jpg");
-//                Log.d(TAG, uri.getLastPathSegment());
-//                Log.d(TAG, uri.getPath());
-//                Log.d(TAG, DocumentFile.fromSingleUri(this, uri).getName());
-////                Bitmap bitmap= BitmapFactory.decodeFile(uri.getPath());
-//                Bitmap bitmap = null;
-//                try {
-//                    bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                bitmap = Bitmap.createScaledBitmap(bitmap,((ImageButton)findViewById(R.id.tempImg)).getWidth(), ((ImageButton)findViewById(R.id.tempImg)).getHeight(), true);
-//                ((ImageButton)findViewById(R.id.tempImg)).setImageBitmap(bitmap);
-////                ((ImageButton)findViewById(R.id.tempImg)).setImageURI(uri);
-//            }
-//        }
     }
 
 }

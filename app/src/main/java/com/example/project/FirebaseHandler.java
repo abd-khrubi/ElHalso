@@ -339,4 +339,19 @@ public class FirebaseHandler {
             }
         });
     }
+
+    public void updateGalleryForBusiness(Business business) {
+        firestore.collection(BUSINESS).document(business.getId()).update("gallery", business.getGallery())
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()) {
+                    Log.d(TAG, "gallery update successfully");
+                }
+                else {
+                    Log.d(TAG, "failed to update gallery");
+                }
+            }
+        });
+    }
 }

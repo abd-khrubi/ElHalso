@@ -76,7 +76,7 @@ public class EditBusinessActivity extends AppCompatActivity {
                 saveBusiness();
                 break;
             case R.id.action_logout:
-                logout();
+                ((AppLoader)getApplicationContext()).logout(this);
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -84,35 +84,12 @@ public class EditBusinessActivity extends AppCompatActivity {
         return true;
     }
 
-    private void logout(){
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle("Logout");
-        alertDialog.setMessage("Are you sure you wish to logout?");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(EditBusinessActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            }
-        });
-        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        alertDialog.show();
-    }
-
     private void onBusinessUpdate() {
         final UploadBroadcastReceiver uploadReceiver = ((AppLoader)getApplicationContext()).getUploadReceiver();
         uploadReceiver.getNewImage().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                if(s == null || !business.getId().equals(uploadReceiver.getBusiness().getId()) || !uploadReceiver.isLogo())
+                if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()) || !uploadReceiver.isLogo())
                     return;
 
                 if(uploadReceiver.isLogo()) {

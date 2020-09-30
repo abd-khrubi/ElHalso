@@ -1,5 +1,6 @@
 package com.example.project;
 
+import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -118,7 +119,7 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch(item.getItemId()){
             case android.R.id.home:
-                backButton();
+                onBackPressed();
                 break;
             case R.id.action_add:
                 addImageButton();
@@ -135,45 +136,12 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         return true;
     }
 
-    private void backButton(){
-        if(adapter.getIsSelecting()){
-            adapter.triggerSelecting();
-            return;
-        }
-        Intent backIntent = new Intent();
-        setResult(RESULT_OK, backIntent);
-        finish();
-    }
-
-    private void logout(){
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle("Logout");
-        alertDialog.setMessage("Are you sure you wish to logout?");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Logout", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(GalleryActivity.this, LoginActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            }
-        });
-        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        alertDialog.show();
-    }
-
     private void onGalleryUpdate() {
         final UploadBroadcastReceiver uploadReceiver = ((AppLoader)getApplicationContext()).getUploadReceiver();
         uploadReceiver.getNewImage().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                if(s == null || !business.getId().equals(uploadReceiver.getBusiness().getId()))
+                if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()))
                     return;
                 if(uploadReceiver.isLogo()){
                     business.setLogo(s);
@@ -209,6 +177,8 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             public void onClick(DialogInterface dialog, int which) {
                 for(String image : adapter.getSelectedImages())
                     FirebaseHandler.getInstance().deleteImageForBusiness(business, image);
+                if(business.getGallery().size() == 0)
+                    findViewById(R.id.noGalleryTxt).setVisibility(View.VISIBLE);
                 dialog.dismiss();
                 adapter.triggerSelecting();
                 adapter.notifyDataSetChanged();
@@ -227,7 +197,9 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        intent.setAction(Intent.ACTION_GET_CONTENT);
+//        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+//        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         startActivityForResult(Intent.createChooser(intent,"Select Picture"), RC_ADD_IMAGES);
     }
 
@@ -237,7 +209,16 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
 
     @Override
     public void onBackPressed() {
-        backButton();
+        if(adapter.getIsSelecting()){
+            adapter.triggerSelecting();
+            return;
+        }
+        if(adapter.isOrderChanged()){
+            FirebaseHandler.getInstance().updateGalleryForBusiness(business);
+        }
+        Intent backIntent = new Intent();
+        setResult(RESULT_OK, backIntent);
+        finish();
     }
 
     @Override
@@ -261,8 +242,10 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             }
 
             for(int i=0;i<imageList.size();i++) {
+                getContentResolver().takePersistableUriPermission(imageList.get(i), Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 ImageUploader.addImageUpload(getApplicationContext(), business, imageList.get(i), false);
             }
+            findViewById(R.id.noGalleryTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
             adapter.notifyDataSetChanged();
         }
     }
