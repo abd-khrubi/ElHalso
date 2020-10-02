@@ -147,13 +147,14 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
                     return;
                 }
                 business.addImage(s);
+                adapter.notifyItemChanged(business.getGallery().indexOf(s));
                 downloadImage(s);
             }
         });
     }
 
     private void downloadImages() {
-        for(String image : business.getGallery()){
+        for(String image : business.getGallery()) {
             downloadImage(image);
         }
     }

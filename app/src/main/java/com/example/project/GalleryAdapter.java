@@ -113,9 +113,12 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
         holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
 
-        if(!downloadedGallery.contains(gallery.get(position)))
+        if(!downloadedGallery.contains(gallery.get(position))) {
+            holder.imageProgress.setVisibility(View.VISIBLE);
             return;
+        }
 
+        holder.imageProgress.setVisibility(View.GONE);
         holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
 
         File file = new File(galleryFolder, gallery.get(position));

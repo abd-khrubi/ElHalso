@@ -266,6 +266,8 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             downloadImages();
         }
         else if(requestCode == RC_GALLERY && ownedBusiness) {
+            if(business.getGallery().size() != adapter.getItemCount())
+                adapter.notifyDataSetChanged();
             downloadImages();
         }
         else if(requestCode == RC_REVIEWS && !ownedBusiness) {

@@ -7,6 +7,16 @@
     android:layout_height="wrap_content"
     android:clickable="true">
 
+    <ProgressBar
+        android:id="@+id/imageProgress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:indeterminate="true" />
+
     <ImageView
         android:id="@+id/imageItem"
         android:layout_width="@dimen/gallery_image_width"
@@ -14,24 +24,15 @@
         android:layout_marginStart="3dp"
         android:layout_marginTop="3dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_action_syncing" />
+        app:layout_constraintTop_toTopOf="parent" />
+<!--        app:srcCompat="@drawable/ic_action_syncing" />-->
 
     <CheckBox
         android:id="@+id/selectedBox"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="@+id/imageItem"
         app:layout_constraintTop_toTopOf="@+id/imageItem" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=""
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
