@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.work.WorkManager;
@@ -17,6 +18,7 @@ public class AppLoader extends Application {
     private User user;
     private Business business;
     private UploadBroadcastReceiver uploadReceiver;
+    private AlertDialog loadingDialog;
 
     public static final String UPLOAD_BROADCAST = "business_updated";
 
@@ -70,5 +72,28 @@ public class AppLoader extends Application {
             }
         });
         alertDialog.show();
+    }
+
+    public void showLoadingDialog(Context context, String title, String message) {
+        if(loadingDialog != null){
+            loadingDialog.setMessage(title);
+            loadingDialog.setMessage(message);
+            return;
+        }
+        ProgressBar progressBar = new ProgressBar(context);
+        progressBar.setIndeterminate(true);
+        loadingDialog = new AlertDialog.Builder(context).create();
+        loadingDialog.setTitle(title);
+        loadingDialog.setMessage(message);
+        loadingDialog.setView(progressBar);
+        loadingDialog.setCancelable(false);
+        loadingDialog.show();
+    }
+
+    public void dismissLoadingDialog() {
+        if(loadingDialog != null) {
+            loadingDialog.dismiss();
+            loadingDialog = null;
+        }
     }
 }

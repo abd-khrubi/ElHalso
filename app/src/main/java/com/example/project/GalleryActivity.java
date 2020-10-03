@@ -142,6 +142,12 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
             public void onChanged(String s) {
                 if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()))
                     return;
+                if(!uploadReceiver.isUploaded()){
+                    business.removeImage(s);
+                    adapter.notifyItemRemoved(business.getGallery().indexOf(s));
+                    // todo: test
+                    return;
+                }
                 if(uploadReceiver.isLogo()){
                     business.setLogo(s);
                     return;
@@ -266,8 +272,8 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
 //    }
 
     @Override
-    public void onImageDownloaded(String businessID, final String imageName) {
-        if(!business.getId().equals(businessID))
+    public void onImageDownloaded(String businessID, final String imageName, boolean successful) {
+        if(!business.getId().equals(businessID) || !successful)
             return;
 
         runOnUiThread(new Runnable() {

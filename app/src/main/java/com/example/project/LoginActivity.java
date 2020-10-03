@@ -2,6 +2,7 @@ package com.example.project;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -11,19 +12,29 @@ import androidx.lifecycle.Observer;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.text.InputType;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
@@ -77,7 +88,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         mFirebaseAuth = FirebaseAuth.getInstance();
-//        mFirebaseAuth.signOut();
         setupFacebookLogin();
         setupGoogleLogin();
         isBusinessLogin = false;
@@ -125,8 +135,13 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(FirebaseAuth.getInstance().getCurrentUser() != null){
+        FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
+        if(fUser != null){
             // todo: business or user?
+            if(!fUser.isEmailVerified()){
+                FirebaseAuth.getInstance().signOut();
+                return;
+            }
             successfulLogin();
         }
     }
@@ -155,6 +170,7 @@ public class LoginActivity extends AppCompatActivity {
         googleSigninBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ((AppLoader)getApplicationContext()).showLoadingDialog(LoginActivity.this, "Authenticating", "Connecting with Google...");
                 Intent signInIntent = mGoogleSignInClient.getSignInIntent();
                 startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
             }
@@ -166,6 +182,12 @@ public class LoginActivity extends AppCompatActivity {
 
         mCallerbackManager = CallbackManager.Factory.create();
         LoginButton fbLoginBtn = (LoginButton) findViewById(R.id.fbLoginBtn);
+        fbLoginBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((AppLoader)getApplicationContext()).showLoadingDialog(LoginActivity.this, "Authenticating", "Connecting with Facebook...");
+            }
+        });
         fbLoginBtn.registerCallback(mCallerbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -175,17 +197,22 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onCancel() {
+                ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                showMessage("Facebook login canceled");
                 Log.d(TAG, "Cancel authenticating to Facebook");
             }
 
             @Override
             public void onError(FacebookException error) {
+                ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                showMessage("Error connecting with Facebook");
                 Log.d(TAG, "Error authenticating to Facebook");
             }
         });
     }
 
     private void handleFacebookToken(AccessToken token){
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Authenticating", "Connecting " + getString(R.string.app_name) + " with Facebook...");
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
         mFirebaseAuth.signInWithCredential(credential).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
@@ -195,10 +222,16 @@ public class LoginActivity extends AppCompatActivity {
                     successfulLogin();
                 }
                 else{
+                    ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                    showMessage("Failed to connect Facebook with " + getString(R.string.app_name));
                     Log.d(TAG, "Sign in to Firebase with credential failed");
                 }
             }
         });
+    }
+
+    private void showMessage(String msg){
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -206,7 +239,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         mCallerbackManager.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == RC_GOOGLE_SIGN_IN) {
+        if (requestCode == RC_GOOGLE_SIGN_IN && resultCode == RESULT_OK) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 // Google Sign In was successful, authenticate with Firebase
@@ -221,9 +254,13 @@ public class LoginActivity extends AppCompatActivity {
             Log.d(TAG, "signed in with email");
             successfulLogin();
         }
+        else if(resultCode != RESULT_OK){
+            ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+        }
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Authenticating", "Connecting " + getString(R.string.app_name) + " with Google...");
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mFirebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -233,6 +270,8 @@ public class LoginActivity extends AppCompatActivity {
                             Log.d(TAG, "signInWithCredential:success");
                             successfulLogin();
                         } else {
+                            ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                            showMessage("Failed to connect Google with " + getString(R.string.app_name));
                             Log.d(TAG, "signInWithCredential:failure", task.getException());
                         }
                     }
@@ -245,8 +284,8 @@ public class LoginActivity extends AppCompatActivity {
         final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
         final LiveData<Boolean> userUpdateDone = firebaseHandler.getUpdate();
 
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Syncing", "Getting user info...");
         firebaseHandler.updateOrCreateFirebaseUser(user);
-
         // wait for user fetch to end
         userUpdateDone.observe(this, new Observer<Boolean>() {
             @Override
@@ -257,10 +296,12 @@ public class LoginActivity extends AppCompatActivity {
                 ((AppLoader) getApplicationContext()).setUser(user);
 
                 if(isBusinessLogin) {
+                    ((AppLoader)getApplicationContext()).dismissLoadingDialog();
                     // regular user log in
                 }
                 else {
                     // need to fetch business for user
+                    ((AppLoader)getApplicationContext()).showLoadingDialog(LoginActivity.this, "Syncing", "Getting business info...");
                     LiveData<Boolean> businessUpdateDone = firebaseHandler.getUpdate();
                     firebaseHandler.fetchBusinessForUser(user);
                     businessUpdateDone.observe(LoginActivity.this, new Observer<Boolean>() {
@@ -269,6 +310,7 @@ public class LoginActivity extends AppCompatActivity {
                             if (!aBoolean)
                                 return;
                             userUpdateDone.removeObserver(this);
+                            ((AppLoader)getApplicationContext()).dismissLoadingDialog();
                             Business business = (Business) firebaseHandler.getUpdatedObject();
                             goToBusiness(business);
                         }

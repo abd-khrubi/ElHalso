@@ -56,7 +56,8 @@ public class EditBusinessActivity extends AppCompatActivity {
         Log.d(TAG, business.getId());
 
         setSupportActionBar((Toolbar) findViewById(R.id.editBusinessToolbar));
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(!startedHere)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(business.getName());
         getSupportActionBar().setSubtitle("Edit");
     }
@@ -93,7 +94,10 @@ public class EditBusinessActivity extends AppCompatActivity {
             public void onChanged(String s) {
                 if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()) || !uploadReceiver.isLogo())
                     return;
-
+                if(!uploadReceiver.isUploaded()){
+                    business.removeImage(s);
+                    return;
+                }
                 if(uploadReceiver.isLogo()) {
                     business.setLogo(s);
                     File imageFile = new File(galleryFolder, s);

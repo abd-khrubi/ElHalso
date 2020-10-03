@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 class ImageDownloader {
     public interface DownloadCallback{
-        void onImageDownloaded(String businessID, String imageName);
+        void onImageDownloaded(String businessID, String imageName, boolean successful);
     }
 
     private static Executor bgExecutor = Executors.newCachedThreadPool();
@@ -46,7 +46,7 @@ class ImageDownloader {
                     localFile = new File(downloadFolder, imageName);
                     if(localFile.exists()){
                         Log.d(TAG, "file <"+imageName+"> already exists");
-                        downloadDone(businessID, imageName);
+                        downloadDone(businessID, imageName, true);
                         return;
                     }
                     localFile = new File(downloadFolder, imageName);
@@ -55,6 +55,7 @@ class ImageDownloader {
                 } catch(Exception e){
                     Log.e(TAG, "Failed to create file.");
                     Log.e(TAG, e.toString());
+                    downloadDone(businessID, imageName, false);
                     return;
                 }
 
@@ -63,21 +64,23 @@ class ImageDownloader {
                     public void onComplete(@NonNull Task<FileDownloadTask.TaskSnapshot> task) {
                         if(task.isSuccessful()){
                             Log.d(TAG, "image <" + imageName +"> downloaded successfully");
+                            downloadDone(businessID, imageName, true);
                         }
                         else {
                             Log.d(TAG, "image failed to download");
+                            downloadDone(businessID, imageName, false);
                         }
-                        downloadDone(businessID, imageName);
+
                     }
                 });
             }
         });
     }
 
-    private synchronized static void downloadDone(String businessID, String imageName) {
+    private synchronized static void downloadDone(String businessID, String imageName, boolean successful) {
         for (DownloadCallback callback: callbacks) {
             if(callback != null)
-                callback.onImageDownloaded(businessID, imageName);
+                callback.onImageDownloaded(businessID, imageName, successful);
         }
     }
 

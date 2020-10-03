@@ -131,6 +131,12 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             public void onChanged(String s) {
                 if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()))
                     return;
+                if(!uploadReceiver.isUploaded()){
+                    business.removeImage(s);
+                    adapter.notifyItemRemoved(business.getGallery().indexOf(s));
+                    // todo: test
+                    return;
+                }
                 if(uploadReceiver.isLogo()) {
                     business.setLogo(s);
                 }
@@ -227,8 +233,8 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     }
 
     @Override
-    public synchronized void onImageDownloaded(String businessID, final String imageName) {
-        if(!business.getId().equals(businessID))
+    public synchronized void onImageDownloaded(String businessID, final String imageName, boolean successful) {
+        if(!business.getId().equals(businessID) || !successful)
             return;
 
         runOnUiThread(new Runnable() {
@@ -263,14 +269,19 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
 
         if(requestCode == RC_EDIT_BUSINESS && resultCode == RESULT_OK){
             fillInBusinessDetails();
+            Log.d(TAG, "edit Gallery size: " + business.getGallery().size());
+            adapter.notifyDataSetChanged();
             downloadImages();
         }
         else if(requestCode == RC_GALLERY && ownedBusiness) {
-            if(business.getGallery().size() != adapter.getItemCount())
-                adapter.notifyDataSetChanged();
+            Log.d(TAG, "<Gallery> size: " + business.getGallery().size());
+            adapter.notifyDataSetChanged();
             downloadImages();
         }
         else if(requestCode == RC_REVIEWS && !ownedBusiness) {
+            Log.d(TAG, "reviews Gallery size: " + business.getGallery().size());
+            adapter.notifyDataSetChanged();
+            downloadImages();
             ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
             setRatingBar();
         }
