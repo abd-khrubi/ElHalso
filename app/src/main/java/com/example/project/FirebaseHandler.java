@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Math.log;
 import static java.lang.Math.toRadians;
 
 public class FirebaseHandler {
@@ -125,7 +126,7 @@ public class FirebaseHandler {
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if(task.isSuccessful()){
                     DocumentSnapshot snap = task.getResult();
-                    if(snap.exists()) {
+                    if(snap != null && snap.exists()) {
                         User userFetched = snap.toObject(User.class);
                         user.setBusinessID(userFetched.getBusinessID());
                         user.setFavorites(userFetched.getFavorites());
@@ -179,7 +180,8 @@ public class FirebaseHandler {
                     Log.d(TAG, "successfully queried " + task.getResult().size() + " businesses");
                     ArrayList<Business> businesses = new ArrayList<>();
                     for(QueryDocumentSnapshot doc : task.getResult()){
-                        if(calculateDistance(myLocation, doc.getGeoPoint("coordinates")) <= distance*1000) {
+                        GeoPoint point = doc.getGeoPoint("coordinates");
+                        if(point != null && calculateDistance(myLocation, point) <= distance*1000) {
                             businesses.add(doc.toObject(Business.class));
                         }
                     }
