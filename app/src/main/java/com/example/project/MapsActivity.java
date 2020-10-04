@@ -12,6 +12,7 @@ import androidx.lifecycle.LiveData;
 
 import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationTracker;
+import com.example.project.marker.MapMarkerAdapter;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,21 +20,23 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 import com.ontbee.legacyforks.cn.pedant.SweetAlert.SweetAlertDialog;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     private static final String TAG = "MapsActivity";
 
 
     private GoogleMap mMap;
 
-//    List<Business> businesses = new ArrayList<>();
+    List<Business> businesses = new ArrayList<>();
     private LocationTracker locationTracker;
     private boolean running = false;
     private boolean shouldAsk = true;
@@ -97,6 +100,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void tstButton(View view) {
         Log.i(TAG, "tstButton: Click!!");
+        if (!locationTracker.isTrackerReady()) {
+            return;
+        }
         final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
         mMap.animateCamera(getZoomForDistance(currentLocation.toLatLng(), 100));
         final Business[] business = new Business[1];
@@ -107,18 +113,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return;
             }
             updateDone.removeObservers(this);
-            List<Business> b = (List<Business>) firebaseHandler.getUpdatedObject();
-            addMarkers(b);
+            //noinspection unchecked
+            businesses = (ArrayList<Business>) firebaseHandler.getUpdatedObject();
+            addMarkers(businesses);
         });
     }
 
     void addMarkers(final List<Business> businesses) {
-        Log.i(TAG, "addMarkers: Adding " + businesses.size() + " markers");
+        Log.d(TAG, "addMarkers: Adding " + businesses.size() + " markers");
         for (Business business : businesses) {
-            Log.i(TAG, "addMarkers: " + business);
+            Log.d(TAG, "addMarkers: " + business);
             LatLng ll = new LatLng(business.getCoordinates().getLatitude(), business.getCoordinates().getLongitude());
-            mMap.addMarker(new MarkerOptions().position(ll).title(business.getName()));
+            Marker marker = mMap.addMarker(new MarkerOptions()
+                    .position(ll).title(business.getName()));
 
+            marker.setTag(business);
+            MapMarkerAdapter adapter = new MapMarkerAdapter(this);
+            mMap.setInfoWindowAdapter(adapter);
+            mMap.setOnInfoWindowClickListener(this);
         }
     }
 
@@ -160,5 +172,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onPause() {
         super.onPause();
         locationTracker.stopTracking();
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+        Log.d(TAG, "onInfoWindowClick: " + marker.getTitle());
     }
 }

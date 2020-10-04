@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Business implements Parcelable {
     private String id;
@@ -16,7 +17,8 @@ public class Business implements Parcelable {
     private ArrayList<String> gallery;
     private ArrayList<Review> reviews;
 
-    public Business() { }
+    public Business() {
+    }
 
     public Business(String id) {
         this.id = id;
@@ -45,7 +47,7 @@ public class Business implements Parcelable {
     protected Business(Parcel in) {
         id = in.readString();
         name = in.readString();
-        if(in.readInt() == 1)
+        if (in.readInt() == 1)
             coordinates = new GeoPoint(in.readDouble(), in.readDouble());
         description = in.readString();
         logo = in.readString();
@@ -58,7 +60,7 @@ public class Business implements Parcelable {
         dest.writeString(id);
         dest.writeString(name);
         dest.writeInt(coordinates != null ? 1 : 0);
-        if(coordinates != null){
+        if (coordinates != null) {
             dest.writeDouble(coordinates.getLatitude());
             dest.writeDouble(coordinates.getLongitude());
         }
@@ -136,7 +138,7 @@ public class Business implements Parcelable {
 
     public void addImage(String image) {
         gallery = getGallery();
-        if(!gallery.contains(image))
+        if (!gallery.contains(image))
             gallery.add(image);
     }
 
@@ -147,6 +149,11 @@ public class Business implements Parcelable {
 
     public void setGallery(ArrayList<String> gallery) {
         this.gallery = gallery;
+    }
+
+    public float getReviewsScore() {
+        // TODO calculate total reviews (0-1)
+        return new Random().nextFloat();
     }
 
     @Override

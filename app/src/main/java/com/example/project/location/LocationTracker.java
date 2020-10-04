@@ -125,7 +125,7 @@ public class LocationTracker extends LocationCallback {
     }
 
     public boolean isTrackerReady() {
-        return trackerReady;
+        return trackerReady && lastLocation != null;
     }
 
     public boolean isTracking() {
