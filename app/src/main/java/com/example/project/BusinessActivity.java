@@ -132,9 +132,9 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
                 if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()))
                     return;
                 if(!uploadReceiver.isUploaded()){
+                    int idx = business.getGallery().indexOf(s);
                     business.removeImage(s);
-                    adapter.notifyItemRemoved(business.getGallery().indexOf(s));
-                    // todo: test
+                    adapter.notifyItemRemoved(idx);
                     return;
                 }
                 if(uploadReceiver.isLogo()) {

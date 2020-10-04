@@ -68,7 +68,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-// todo: add appropriate "loading" when syncing
 public class LoginActivity extends AppCompatActivity {
     private CallbackManager mCallerbackManager;
     private GoogleSignInClient mGoogleSignInClient;
@@ -137,10 +136,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onStart();
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         if(fUser != null){
-            // todo: business or user?
             if(!fUser.isEmailVerified()){
                 FirebaseAuth.getInstance().signOut();
                 return;
+            }
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+            if(sp.contains("last_user_id") && fUser.getUid().equals(sp.getString("last_user_id", ""))){
+                isBusinessLogin = sp.getBoolean("is_business_login", false);
             }
             successfulLogin();
         }
@@ -284,6 +286,10 @@ public class LoginActivity extends AppCompatActivity {
         final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
         final LiveData<Boolean> userUpdateDone = firebaseHandler.getUpdate();
 
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        sp.edit().putString("last_user_id", fUser.getUid())
+                .putBoolean("is_business_login", isBusinessLogin)
+                .apply();
         ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Syncing", "Getting user info...");
         firebaseHandler.updateOrCreateFirebaseUser(user);
         // wait for user fetch to end
@@ -295,7 +301,7 @@ public class LoginActivity extends AppCompatActivity {
                 userUpdateDone.removeObserver(this);
                 ((AppLoader) getApplicationContext()).setUser(user);
 
-                if(isBusinessLogin) {
+                if(!isBusinessLogin) {
                     ((AppLoader)getApplicationContext()).dismissLoadingDialog();
                     // regular user log in
                 }
