@@ -17,12 +17,13 @@ public class User {
         this.email = email;
     }
 
-    public User(String id, String name, String email, String businessID, ArrayList<String> favorites) {
+    public User(String id, String name, String email, String businessID, ArrayList<String> favorites, double radius) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.businessID = businessID;
         this.favorites = favorites;
+        this.radius = radius;
     }
 
     public String getId() {
