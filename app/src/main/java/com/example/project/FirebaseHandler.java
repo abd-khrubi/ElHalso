@@ -153,6 +153,27 @@ public class FirebaseHandler {
         });
     }
 
+    public void fetchCategoryBusinesses(String category){
+        firestore.collection(BUSINESS).whereEqualTo("category", category).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if(task.isSuccessful()) {
+                    Log.d(TAG, "successfully queried " + task.getResult().size() + " businesses");
+                    ArrayList<Business> businesses = new ArrayList<>();
+                    for(QueryDocumentSnapshot doc : task.getResult()){
+                        if(doc.getString("name") != null && !doc.getString("name").equals(""))
+                            businesses.add(doc.toObject(Business.class));
+                    }
+                    objectToUpdate = businesses;
+                    updateDone.postValue(true);
+                }
+                else {
+                    Log.d(TAG, "failed to query");
+                }
+            }
+        });
+    }
+
     public void fetchNearbyBusinesses(final GeoPoint myLocation, final double distance){
 //        final GeoPoint orig = calculateGeopointAtDistanceFrom(myLocation, 0, 0);
 //        GeoPoint north = calculateGeopointAtDistanceFrom(orig, distance, 0);
@@ -331,7 +352,8 @@ public class FirebaseHandler {
     public void updateEditedBusiness(Business business) {
         firestore.collection(BUSINESS).document(business.getId()).update("name", business.getName(),
                 "description", business.getDescription(),
-                "coordinates", business.getCoordinates()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                "coordinates", business.getCoordinates(),
+                "category", business.getCategory()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()) {

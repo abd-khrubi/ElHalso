@@ -41,6 +41,14 @@ public class EmailLoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_email_login);
         signupMode = true;
+
+        if(savedInstanceState != null){
+            ((TextView)findViewById(R.id.emailTxt)).setText(savedInstanceState.getString("email", null));
+            ((TextView)findViewById(R.id.nameTxt)).setText(savedInstanceState.getString("name", null));
+            ((TextView)findViewById(R.id.passTxt)).setText(savedInstanceState.getString("pass", null));
+            ((TextView)findViewById(R.id.pass2Txt)).setText(savedInstanceState.getString("pass2", null));
+            signupMode = !savedInstanceState.getBoolean("signupMode", true);
+        }
         changeSignMode(null);
 
         setSupportActionBar((Toolbar) findViewById(R.id.emailLoginToolbar));
@@ -248,5 +256,15 @@ public class EmailLoginActivity extends AppCompatActivity {
 
                     }
                 });
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("email", ((TextView)findViewById(R.id.emailTxt)).getText().toString());
+        outState.putString("name", ((TextView)findViewById(R.id.nameTxt)).getText().toString());
+        outState.putString("pass", ((TextView)findViewById(R.id.passTxt)).getText().toString());
+        outState.putString("pass2", ((TextView)findViewById(R.id.pass2Txt)).getText().toString());
+        outState.putBoolean("signupMode", signupMode);
     }
 }
