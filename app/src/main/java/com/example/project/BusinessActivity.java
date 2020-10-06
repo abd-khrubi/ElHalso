@@ -19,6 +19,10 @@ import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.project.adapters.GalleryAdapter;
+import com.example.project.data.Business;
+import com.example.project.data.Review;
+import com.example.project.data.User;
 import com.google.common.io.Files;
 import com.squareup.picasso.Picasso;
 

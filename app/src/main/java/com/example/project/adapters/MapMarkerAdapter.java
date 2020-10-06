@@ -1,4 +1,4 @@
-package com.example.project.marker;
+package com.example.project.adapters;
 
 import android.app.Activity;
 import android.content.Context;
@@ -8,8 +8,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.project.Business;
 import com.example.project.R;
+import com.example.project.data.Business;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 

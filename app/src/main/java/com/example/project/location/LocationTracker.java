@@ -21,12 +21,15 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.SettingsClient;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LocationTracker extends LocationCallback {
 
     private static final String TAG = "LocationTracker";
 
     private Context context;
-    private MyCallback myCallback;
+    private List<LocationReceivedCallback> callbacks;
 
     private boolean trackerReady = false;
     private boolean tracking = false;
@@ -35,11 +38,10 @@ public class LocationTracker extends LocationCallback {
     private FusedLocationProviderClient fusedLocationProviderClient;
     private LocationRequest locationRequest;
 
-    public LocationTracker(Context context, MyCallback callback) {
+    public LocationTracker(Context context) {
         super();
         this.context = context;
-        this.myCallback = callback;
-
+        this.callbacks = new ArrayList<>();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
 
         createLocationRequest();
@@ -57,7 +59,9 @@ public class LocationTracker extends LocationCallback {
 
             if (loc != lastLocation) {
                 lastLocation = loc;
-                myCallback.call(loc);
+                for (LocationReceivedCallback callback : callbacks) {
+                    callback.onLocationReceived(loc);
+                }
             }
         }
     }
@@ -73,10 +77,10 @@ public class LocationTracker extends LocationCallback {
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
-            ActivityCompat.requestPermissions((Activity) context, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-            }, 101); // TODO move this out of here
+//            ActivityCompat.requestPermissions((Activity) context, new String[]{
+//                    Manifest.permission.ACCESS_FINE_LOCATION,
+//                    Manifest.permission.ACCESS_COARSE_LOCATION
+//            }, 101); // TODO move this out of here
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
             //                                          int[] grantResults)
@@ -134,6 +138,16 @@ public class LocationTracker extends LocationCallback {
 
     public LocationInfo getLastLocation() {
         return lastLocation;
+    }
+
+    public void registerCallback(LocationReceivedCallback callback) {
+        if (!callbacks.contains(callback)) {
+            callbacks.add(callback);
+        }
+    }
+
+    public void clearCallback(LocationReceivedCallback callback) {
+        callbacks.remove(callback);
     }
 }
 

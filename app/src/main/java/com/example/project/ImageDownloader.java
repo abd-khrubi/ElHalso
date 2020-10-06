@@ -3,20 +3,15 @@ package com.example.project;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
 
+import com.example.project.utils.ThreadingHelper;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 

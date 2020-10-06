@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -11,6 +11,7 @@ import java.util.Random;
 public class Business implements Parcelable {
     private String id;
     private String name;
+    private String category;
     private GeoPoint coordinates;
     private String description;
     private String logo;
@@ -24,9 +25,10 @@ public class Business implements Parcelable {
         this.id = id;
     }
 
-    public Business(String id, String name, GeoPoint coordinates, String description, String logo, ArrayList<String> gallery, ArrayList<Review> reviews) {
+    public Business(String id, String name, String category, GeoPoint coordinates, String description, String logo, ArrayList<String> gallery, ArrayList<Review> reviews) {
         this.id = id;
         this.name = name;
+        this.category = category;
         this.coordinates = coordinates;
         this.description = description;
         this.logo = logo;
@@ -37,6 +39,7 @@ public class Business implements Parcelable {
     public Business(Business business) {
         this.id = business.id;
         this.name = business.name;
+        this.category = business.category;
         this.coordinates = business.coordinates;
         this.description = business.description;
         this.logo = business.logo;
@@ -47,6 +50,7 @@ public class Business implements Parcelable {
     protected Business(Parcel in) {
         id = in.readString();
         name = in.readString();
+        category = in.readString();
         if (in.readInt() == 1)
             coordinates = new GeoPoint(in.readDouble(), in.readDouble());
         description = in.readString();
@@ -59,6 +63,7 @@ public class Business implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
         dest.writeString(name);
+        dest.writeString(category);
         dest.writeInt(coordinates != null ? 1 : 0);
         if (coordinates != null) {
             dest.writeDouble(coordinates.getLatitude());
@@ -90,6 +95,10 @@ public class Business implements Parcelable {
         return name;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
     public GeoPoint getCoordinates() {
         return coordinates;
     }
@@ -112,6 +121,10 @@ public class Business implements Parcelable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public void setDescription(String description) {

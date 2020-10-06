@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.data;
 
 import java.util.ArrayList;
 
@@ -8,7 +8,7 @@ public class User {
     private String email;
     private String businessID;
     private ArrayList<String> favorites;
-
+    private double radius;
     public User() { }
 
     public User(String id, String name, String email) {
@@ -45,6 +45,10 @@ public class User {
         return favorites == null ? new ArrayList<String>() : favorites;
     }
 
+    public double getRadius() {
+        return radius;
+    }
+
     public void addFavoriteBusiness(String businessID){
         favorites = getFavorites();
         if(!favorites.contains(businessID))
@@ -62,5 +66,9 @@ public class User {
 
     public void setFavorites(ArrayList<String> favorites) {
         this.favorites = favorites;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
     }
 }

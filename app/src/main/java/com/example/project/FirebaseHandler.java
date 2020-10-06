@@ -1,19 +1,18 @@
 package com.example.project;
 
-import android.content.Context;
 import android.location.Location;
-import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.project.data.Business;
+import com.example.project.data.Review;
+import com.example.project.data.User;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -21,24 +20,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.ListResult;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.lang.Math.log;
-import static java.lang.Math.toRadians;
 
 public class FirebaseHandler {
 
@@ -130,6 +114,7 @@ public class FirebaseHandler {
                         User userFetched = snap.toObject(User.class);
                         user.setBusinessID(userFetched.getBusinessID());
                         user.setFavorites(userFetched.getFavorites());
+                        user.setRadius(userFetched.getRadius());
                         objectToUpdate = user;
                         updateDone.postValue(true);
                     }

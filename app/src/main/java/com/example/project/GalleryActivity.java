@@ -1,6 +1,5 @@
 package com.example.project;
 
-import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,8 +8,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,31 +15,16 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.documentfile.provider.DocumentFile;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.Constraints;
-import androidx.work.Data;
-import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.squareup.picasso.Picasso;
+import com.example.project.adapters.GalleryAdapter;
+import com.example.project.data.Business;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class GalleryActivity extends AppCompatActivity implements  StartDragListener,
         ImageDownloader.DownloadCallback{
