@@ -100,10 +100,6 @@ public class Business implements Parcelable {
         return name;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
     public GeoPoint getCoordinates() {
         return coordinates;
     }
@@ -134,10 +130,6 @@ public class Business implements Parcelable {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 
     public void addReview(Review review) {

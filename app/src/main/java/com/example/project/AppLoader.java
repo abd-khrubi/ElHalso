@@ -5,12 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-<<<<<<< HEAD
 import android.util.Log;
-import android.widget.FrameLayout;
-=======
 import android.widget.ProgressBar;
->>>>>>> master
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.LifecycleOwner;
@@ -34,12 +30,9 @@ public class AppLoader extends Application {
     private Business business;
     private List<Business> businessList;
     private UploadBroadcastReceiver uploadReceiver;
-<<<<<<< HEAD
     private LocationTracker locationTracker;
     private LocationInfo locationInfo;
-=======
     private AlertDialog loadingDialog;
->>>>>>> master
 
     public static final String UPLOAD_BROADCAST = "business_updated";
 
