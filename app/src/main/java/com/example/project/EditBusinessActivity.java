@@ -13,9 +13,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.project.data.Business;
@@ -33,6 +35,7 @@ public class EditBusinessActivity extends AppCompatActivity {
     private File galleryFolder;
     private boolean startedHere;
     private Menu menu;
+    private Spinner categorySpinner;
 
     private static final int RC_EDIT_GALLERY = 481;
     private static final int RC_CHANGE_LOGO = 543;
@@ -48,11 +51,18 @@ public class EditBusinessActivity extends AppCompatActivity {
         if(!galleryFolder.exists())
             galleryFolder.mkdir();
         onBusinessUpdate();
+        // categories
+        categorySpinner = (Spinner) findViewById(R.id.categorySpinner);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.categories));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categorySpinner.setAdapter(adapter);
+        categorySpinner.setSelection(0);
+
         fillInBusinessDetails(savedInstanceState);
-        Log.d(TAG, business.getId());
 
         setSupportActionBar((Toolbar) findViewById(R.id.editBusinessToolbar));
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if(!startedHere)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(business.getName());
         getSupportActionBar().setSubtitle("Edit");
     }
@@ -89,7 +99,10 @@ public class EditBusinessActivity extends AppCompatActivity {
             public void onChanged(String s) {
                 if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()) || !uploadReceiver.isLogo())
                     return;
-
+                if(!uploadReceiver.isUploaded()){
+                    business.removeImage(s);
+                    return;
+                }
                 if(uploadReceiver.isLogo()) {
                     business.setLogo(s);
                     File imageFile = new File(galleryFolder, s);
@@ -110,12 +123,12 @@ public class EditBusinessActivity extends AppCompatActivity {
         if(savedInstanceState != null){
             nameTxt.setText(savedInstanceState.getString("name"));
             descriptionTxt.setText(savedInstanceState.getString("description"));
+            categorySpinner.setSelection(savedInstanceState.getInt("selected_category"));
             if(savedInstanceState.containsKey("newLogo")){
                 Picasso.get().load(Uri.parse(savedInstanceState.getString("newLogo"))).fit().into(logoImg);
             }
             else if(business.getLogo() != null) {
                 File logo = new File(galleryFolder, business.getLogo());
-                Log.d(TAG, logo.getAbsolutePath());
                 Picasso.get().load(Uri.fromFile(logo)).fit().into(logoImg);
             }
             return;
@@ -125,7 +138,6 @@ public class EditBusinessActivity extends AppCompatActivity {
         descriptionTxt.setText(business.getDescription() == null ? "" : business.getDescription());
         if(business.getLogo() != null) {
             File logo = new File(galleryFolder, business.getLogo());
-            Log.d(TAG, logo.getAbsolutePath());
             Picasso.get().load(Uri.fromFile(logo)).fit().into(logoImg);
         }
     }
@@ -142,6 +154,7 @@ public class EditBusinessActivity extends AppCompatActivity {
 
         business.setName(nameTxt.getText().toString());
         business.setDescription(descriptionTxt.getText().toString());
+        business.setCategory((String) categorySpinner.getSelectedItem());
         // todo: add location
         if(newLogoUri != null) {
             if(business.getLogo() != null) {
@@ -171,7 +184,8 @@ public class EditBusinessActivity extends AppCompatActivity {
         String origName = business.getName() != null ? business.getName() : "";
         return !origName.equals(nameTxt.getText().toString())
                 || !origDescription.equals(descriptionTxt.getText().toString())
-                || (newLogoUri != null);
+                || (newLogoUri != null)
+                || !business.getCategory().equals(categorySpinner.getSelectedItem());
 //                && locationChanged;
 
     }
@@ -220,6 +234,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putString("name", nameTxt.getText().toString());
         outState.putString("description", descriptionTxt.getText().toString());
+        outState.putInt("selected_category", categorySpinner.getSelectedItemPosition());
         if(newLogoUri != null)
             outState.putString("newLogo", newLogoUri.toString());
         // todo: location

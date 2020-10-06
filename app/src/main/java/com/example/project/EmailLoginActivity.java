@@ -41,6 +41,14 @@ public class EmailLoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_email_login);
         signupMode = true;
+
+        if(savedInstanceState != null){
+            ((TextView)findViewById(R.id.emailTxt)).setText(savedInstanceState.getString("email", null));
+            ((TextView)findViewById(R.id.nameTxt)).setText(savedInstanceState.getString("name", null));
+            ((TextView)findViewById(R.id.passTxt)).setText(savedInstanceState.getString("pass", null));
+            ((TextView)findViewById(R.id.pass2Txt)).setText(savedInstanceState.getString("pass2", null));
+            signupMode = !savedInstanceState.getBoolean("signupMode", true);
+        }
         changeSignMode(null);
 
         setSupportActionBar((Toolbar) findViewById(R.id.emailLoginToolbar));
@@ -124,14 +132,24 @@ public class EmailLoginActivity extends AppCompatActivity {
 
     public void resetPassword(View view) {
         String email = ((EditText)findViewById(R.id.emailTxt)).getText().toString();
+        Pattern pattern = Pattern.compile(EMAIL_REGEX);
+        Matcher matcher = pattern.matcher(email);
+        if(!matcher.matches()){
+            showMessage("Email address is invalid.");
+            return;
+        }
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Reset Password", "Sending verification email...");
         FirebaseAuth.getInstance().sendPasswordResetEmail(email)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
+                        ((AppLoader)getApplicationContext()).dismissLoadingDialog();
                         if (task.isSuccessful()) {
+                            showMessage("Email sent!");
                             Log.d(TAG, "Email sent.");
                         }
                         else {
+                            showMessage("Failed to send email");
                             Log.d(TAG, "Failed to send email. " + task.getException().toString());
                         }
                     }
@@ -160,11 +178,13 @@ public class EmailLoginActivity extends AppCompatActivity {
     private void signin(String email, String password) {
         final FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
 
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Signing in", "Connecting to " + getString(R.string.app_name) + "...");
         mFirebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
+                        ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                        if(task.isSuccessful()) {
                             if(!task.getResult().getUser().isEmailVerified()){
                                 showMessage("Please verify your email first!");
                                 return;
@@ -185,6 +205,7 @@ public class EmailLoginActivity extends AppCompatActivity {
         final FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
         final String name = ((EditText)findViewById(R.id.nameTxt)).getText().toString();
 
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Signing up", "Creating " + getString(R.string.app_name) + " user...");
         mFirebaseAuth.createUserWithEmailAndPassword(email, password)
                 .continueWithTask(new Continuation<AuthResult, Task<Void>>() {
                     @Override
@@ -195,32 +216,55 @@ public class EmailLoginActivity extends AppCompatActivity {
                                     .build();
                             return mFirebaseAuth.getCurrentUser().updateProfile(profile);
                         } else {
+                            ((AppLoader)getApplicationContext()).dismissLoadingDialog();
                             Log.d(TAG, "Authentication failed ", task.getException());
+//                            throw new Exception();
                             showMessage("Email already in use. Please choose a different one.");
                             return null;
                         }
                     }
                 }).continueWithTask(new Continuation<Void, Task<Void>>() {
-            @Override
-            public Task<Void> then(@NonNull Task<Void> task) throws Exception {
-                if(task.isSuccessful()){
-                    return mFirebaseAuth.getCurrentUser().sendEmailVerification();
-                } else {
-                    Log.d(TAG, "Failed to update user");
-                    return null;
-                }
-            }
-        }).addOnCompleteListener(this, new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    showMessage("Verification Email sent");
-                } else {
-                    Log.d(TAG, "Authentication failed", task.getException());
-                    showMessage("Sign up failed. Please try again later.");
-                }
+                    @Override
+                    public Task<Void> then(@NonNull Task<Void> task) throws Exception {
+                        if(task.getException() instanceof NullPointerException){
+                            return null;
+                        }
+                        if(task.isSuccessful()){
+                            ((AppLoader)getApplicationContext()).showLoadingDialog(EmailLoginActivity.this, "Signing up", "Sending verification email...");
+                            return mFirebaseAuth.getCurrentUser().sendEmailVerification();
+                        } else {
+                            ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                            showMessage("Failed to create user data");
+                            Log.d(TAG, "Failed to update user");
+                            return null;
+                        }
+                    }
+                }).addOnCompleteListener(this, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.getException() instanceof NullPointerException){
+                            return;
+                        }
+                        if (task.isSuccessful()) {
+                            ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                            showMessage("Verification Email sent");
+                        } else {
+                            Log.d(TAG, "Authentication failed", task.getException());
+                            ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                            showMessage("Sending verification email failed");
+                        }
 
-            }
-        });
+                    }
+                });
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("email", ((TextView)findViewById(R.id.emailTxt)).getText().toString());
+        outState.putString("name", ((TextView)findViewById(R.id.nameTxt)).getText().toString());
+        outState.putString("pass", ((TextView)findViewById(R.id.passTxt)).getText().toString());
+        outState.putString("pass2", ((TextView)findViewById(R.id.pass2Txt)).getText().toString());
+        outState.putBoolean("signupMode", signupMode);
     }
 }

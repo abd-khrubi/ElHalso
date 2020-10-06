@@ -5,8 +5,12 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+<<<<<<< HEAD
 import android.util.Log;
 import android.widget.FrameLayout;
+=======
+import android.widget.ProgressBar;
+>>>>>>> master
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.LifecycleOwner;
@@ -30,8 +34,12 @@ public class AppLoader extends Application {
     private Business business;
     private List<Business> businessList;
     private UploadBroadcastReceiver uploadReceiver;
+<<<<<<< HEAD
     private LocationTracker locationTracker;
     private LocationInfo locationInfo;
+=======
+    private AlertDialog loadingDialog;
+>>>>>>> master
 
     public static final String UPLOAD_BROADCAST = "business_updated";
 
@@ -114,4 +122,26 @@ public class AppLoader extends Application {
         });
     }
 
+    public void showLoadingDialog(Context context, String title, String message) {
+        if(loadingDialog != null){
+            loadingDialog.setMessage(title);
+            loadingDialog.setMessage(message);
+            return;
+        }
+        ProgressBar progressBar = new ProgressBar(context);
+        progressBar.setIndeterminate(true);
+        loadingDialog = new AlertDialog.Builder(context).create();
+        loadingDialog.setTitle(title);
+        loadingDialog.setMessage(message);
+        loadingDialog.setView(progressBar);
+        loadingDialog.setCancelable(false);
+        loadingDialog.show();
+    }
+
+    public void dismissLoadingDialog() {
+        if(loadingDialog != null) {
+            loadingDialog.dismiss();
+            loadingDialog = null;
+        }
+    }
 }

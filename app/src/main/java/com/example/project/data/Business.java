@@ -51,8 +51,9 @@ public class Business implements Parcelable {
         id = in.readString();
         name = in.readString();
         category = in.readString();
-        if (in.readInt() == 1)
+        if (in.readInt() == 1) {
             coordinates = new GeoPoint(in.readDouble(), in.readDouble());
+        }
         description = in.readString();
         logo = in.readString();
         gallery = in.createStringArrayList();
@@ -91,6 +92,10 @@ public class Business implements Parcelable {
         return id;
     }
 
+    public String getCategory() {
+        return category != null ? category : "Misc";
+    }
+
     public String getName() {
         return name;
     }
@@ -104,7 +109,7 @@ public class Business implements Parcelable {
     }
 
     public String getDescription() {
-        return description;
+        return description != null ? description : "";
     }
 
     public String getLogo() {
@@ -129,6 +134,10 @@ public class Business implements Parcelable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public void addReview(Review review) {

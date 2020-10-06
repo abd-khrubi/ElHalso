@@ -53,7 +53,6 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         setupBusiness(getIntent());
         fillInBusinessDetails();
 
-        Log.d(TAG, "in " + business.getId());
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
         adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, false, null);
         galleryRecyclerView.setAdapter(adapter);
@@ -121,9 +120,9 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     }
 
     private void fillInBusinessDetails(){
-        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription() != null ||
-                business.getDescription().trim().equals("") ? business.getDescription() : "(No description)");
+        ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription().trim().equals("") ? "(No description)" : business.getDescription());
         ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
+        ((TextView)findViewById(R.id.categoryTxt)).setText("Category: " + business.getCategory());
         findViewById(R.id.noImagesTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
         setRatingBar();
     }
@@ -135,6 +134,12 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             public void onChanged(String s) {
                 if(s == null || !business.getId().equals(uploadReceiver.getBusinessID()))
                     return;
+                if(!uploadReceiver.isUploaded()){
+                    int idx = business.getGallery().indexOf(s);
+                    business.removeImage(s);
+                    adapter.notifyItemRemoved(idx);
+                    return;
+                }
                 if(uploadReceiver.isLogo()) {
                     business.setLogo(s);
                 }
@@ -149,7 +154,6 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
 
     private void downloadImages() {
         if(business.getLogo() != null) {
-            Log.d(TAG, "adding logo <"+business.getLogo()+">");
             downloadImage(business.getLogo());
         }
         for(String image : business.getGallery()){
@@ -179,20 +183,6 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         }
     }
 
-    private void setupDescription(){
-        TextView descriptionView = findViewById(R.id.descriptionTxt);
-        String description = business.getDescription();
-        Log.d(TAG,descriptionView.getLineCount() + "");
-        descriptionView.setText(description != null && description.trim().equals("") ? business.getDescription() : "(No description)");
-        if(description == null || description.trim().equals("")){
-            descriptionView.setAlpha(EMPTY_TEXT_ALPHA);
-        }
-
-
-
-//        Log.d(TAG, descriptionView.getLayout().getLineEnd(3) + " in line 3");
-    }
-
     private void setRatingBar(){
         float sum = 0;
         for(Review review : business.getReviews()){
@@ -214,10 +204,16 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     }
 
     public void toggleFavorite() {
-        Log.d(TAG, "toggling favorite");
         User user = ((AppLoader)getApplicationContext()).getUser();
-        FirebaseHandler.getInstance().addFavoriteBusiness(user, business);
-        int toDraw = user.getFavorites().contains(business.getId()) ? R.drawable.ic_is_favorite : R.drawable.ic_is_not_favorite;
+        int toDraw;
+        if(user.getFavorites().contains(business.getId())){
+            FirebaseHandler.getInstance().removeFavoriteBusiness(user, business);
+            toDraw = R.drawable.ic_is_favorite;
+        }
+        else {
+            FirebaseHandler.getInstance().addFavoriteBusiness(user, business);
+            toDraw = R.drawable.ic_is_not_favorite;
+        }
         menu.findItem(R.id.action_favorite).setIcon(toDraw);
     }
 
@@ -231,8 +227,8 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     }
 
     @Override
-    public synchronized void onImageDownloaded(String businessID, final String imageName) {
-        if(!business.getId().equals(businessID))
+    public synchronized void onImageDownloaded(String businessID, final String imageName, boolean successful) {
+        if(!business.getId().equals(businessID) || !successful)
             return;
 
         runOnUiThread(new Runnable() {
@@ -267,14 +263,16 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
 
         if(requestCode == RC_EDIT_BUSINESS && resultCode == RESULT_OK){
             fillInBusinessDetails();
+            adapter.notifyDataSetChanged();
             downloadImages();
         }
         else if(requestCode == RC_GALLERY && ownedBusiness) {
-            if(business.getGallery().size() != adapter.getItemCount())
-                adapter.notifyDataSetChanged();
+            adapter.notifyDataSetChanged();
             downloadImages();
         }
         else if(requestCode == RC_REVIEWS && !ownedBusiness) {
+            adapter.notifyDataSetChanged();
+            downloadImages();
             ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
             setRatingBar();
         }
