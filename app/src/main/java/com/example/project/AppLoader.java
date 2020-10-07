@@ -5,21 +5,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.util.Log;
 import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.lifecycle.LifecycleOwner;
 
-import com.example.project.callbacks.OnBusinessesReady;
 import com.example.project.data.Business;
 import com.example.project.data.User;
 import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationTracker;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.GeoPoint;
-
-import java.util.List;
 
 
 public class AppLoader extends Application {
@@ -28,7 +22,6 @@ public class AppLoader extends Application {
 
     private User user;
     private Business business;
-    private List<Business> businessList;
     private UploadBroadcastReceiver uploadReceiver;
     private LocationTracker locationTracker;
     private LocationInfo locationInfo;
@@ -41,8 +34,6 @@ public class AppLoader extends Application {
         super.onCreate();
         uploadReceiver = new UploadBroadcastReceiver();
         registerReceiver(uploadReceiver, new IntentFilter(UPLOAD_BROADCAST));
-
-        locationTracker = new LocationTracker(getApplicationContext());
     }
 
     public User getUser() {
@@ -51,10 +42,6 @@ public class AppLoader extends Application {
 
     public Business getBusiness() {
         return business;
-    }
-
-    public List<Business> getBusinessList() {
-        return businessList;
     }
 
     public void setUser(User user) {
@@ -73,7 +60,7 @@ public class AppLoader extends Application {
         return locationTracker;
     }
 
-    public void logout(final Context context){
+    public void logout(final Context context) {
         AlertDialog alertDialog = new AlertDialog.Builder(context).create();
         alertDialog.setTitle("Logout");
         alertDialog.setMessage("Are you sure you wish to logout?");
@@ -98,25 +85,12 @@ public class AppLoader extends Application {
         alertDialog.show();
     }
 
-    public void setRadius(int radius){
+    public void setRadius(int radius) {
         this.user.setRadius(radius);
     }
 
-    public void fetchBusinesses(LifecycleOwner owner, GeoPoint location, double radius, OnBusinessesReady callback) {
-        FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
-        firebaseHandler.fetchNearbyBusinesses(location, radius);
-        firebaseHandler.getUpdate().observe(owner, isDone -> {
-            if (!isDone) {
-                return;
-            }
-            businessList = (List<Business>) firebaseHandler.getUpdatedObject();
-            Log.i(TAG, "fetchBusinesses: Got " + businessList.size());
-            callback.call();
-        });
-    }
-
     public void showLoadingDialog(Context context, String title, String message) {
-        if(loadingDialog != null){
+        if (loadingDialog != null) {
             loadingDialog.setMessage(title);
             loadingDialog.setMessage(message);
             return;
@@ -132,7 +106,7 @@ public class AppLoader extends Application {
     }
 
     public void dismissLoadingDialog() {
-        if(loadingDialog != null) {
+        if (loadingDialog != null) {
             loadingDialog.dismiss();
             loadingDialog = null;
         }

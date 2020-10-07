@@ -22,14 +22,16 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.SettingsClient;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LocationTracker extends LocationCallback {
 
     private static final String TAG = "LocationTracker";
 
     private Context context;
-    private List<LocationReceivedCallback> callbacks;
+    private Map<String, LocationReceivedCallback> callbacks;
 
     private boolean trackerReady = false;
     private boolean tracking = false;
@@ -41,7 +43,7 @@ public class LocationTracker extends LocationCallback {
     public LocationTracker(Context context) {
         super();
         this.context = context;
-        this.callbacks = new ArrayList<>();
+        this.callbacks = new HashMap<>();
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
 
         createLocationRequest();
@@ -59,7 +61,7 @@ public class LocationTracker extends LocationCallback {
 
             if (loc != lastLocation) {
                 lastLocation = loc;
-                for (LocationReceivedCallback callback : callbacks) {
+                for (LocationReceivedCallback callback : callbacks.values()) {
                     callback.onLocationReceived(loc);
                 }
             }
@@ -75,17 +77,6 @@ public class LocationTracker extends LocationCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
         ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-//            ActivityCompat.requestPermissions((Activity) context, new String[]{
-//                    Manifest.permission.ACCESS_FINE_LOCATION,
-//                    Manifest.permission.ACCESS_COARSE_LOCATION
-//            }, 101); // TODO move this out of here
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
             return;
         }
         fusedLocationProviderClient.requestLocationUpdates(locationRequest, this, Looper.getMainLooper())
@@ -140,14 +131,16 @@ public class LocationTracker extends LocationCallback {
         return lastLocation;
     }
 
-    public void registerCallback(LocationReceivedCallback callback) {
-        if (!callbacks.contains(callback)) {
-            callbacks.add(callback);
+    public void registerCallback(String tag, LocationReceivedCallback callback) {
+        if (!callbacks.containsKey(tag)) {
+            callbacks.put(tag, callback);
+        } else {
+            Log.w(TAG, "registerCallback: Callback " + tag + " already registered");
         }
     }
 
-    public void clearCallback(LocationReceivedCallback callback) {
-        callbacks.remove(callback);
+    public void clearCallback(String tag) {
+        callbacks.remove(tag);
     }
 }
 

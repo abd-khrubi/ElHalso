@@ -1,6 +1,8 @@
 package com.example.project;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,6 +12,7 @@ import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 
@@ -28,6 +31,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
+import com.ontbee.legacyforks.cn.pedant.SweetAlert.SweetAlertDialog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +65,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         });
     };
 
+    private LocationReceivedCallback onLocationUpdate = locationInfo -> {
+        if (mMap != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(locationInfo.toLatLng()));
+        }
+    };
+
     void addMarkers(final List<Business> businesses) {
         Log.d(TAG, "addMarkers: Adding " + businesses.size() + " markers");
         for (Business business : businesses) {
@@ -77,12 +87,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             });
         }
     }
-
-    private LocationReceivedCallback onLocationUpdate = locationInfo -> {
-        if (mMap != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(locationInfo.toLatLng()));
-        }
-    };
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -103,8 +107,20 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         button.setOnClickListener(buttonClick);
 
         context = view.getContext();
-        locationTracker = ((AppLoader) requireContext().getApplicationContext()).getLocationTracker();
-        locationTracker.registerCallback(onLocationUpdate);
+
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+//            ActivityCompat.requestPermissions(requireActivity(), permissions, 1010);
+            requestPermissions(permissions, 1010);
+            return;
+        }
+
+        locationTracker = ((MainMapActivity) requireActivity()).locationTracker;
+        locationTracker.registerCallback(TAG, onLocationUpdate);
+        ((MainMapActivity) requireActivity()).callbacks.put(TAG, () -> {
+            addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
+        });
     }
 
     private CameraUpdate getZoomForDistance(LatLng originalPosition, double distance) {
@@ -119,23 +135,37 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        Context context = requireContext();
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        mMap.setMyLocationEnabled(true);
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        locationTracker.startTracking();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        locationTracker.stopTracking();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        locationTracker.stopTracking();
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1010) {
+            for (int i = 0; i < permissions.length; i++) {
+                if ((permissions[i].equals(Manifest.permission.ACCESS_FINE_LOCATION) || permissions[i].equals(Manifest.permission.ACCESS_COARSE_LOCATION))
+                        && grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                    SweetAlertDialog dialog = new SweetAlertDialog(context, SweetAlertDialog.ERROR_TYPE);
+                    dialog.setTitleText("Location must be enabled");
+                    dialog.setOnDismissListener(d -> {
+                        d.dismiss();
+                        String[] p = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+                        requestPermissions(p, 1010);
+                    });
+                    dialog.show();
+                    return;
+                } else {
+                    locationTracker = ((MainMapActivity) requireActivity()).locationTracker;
+                    locationTracker.registerCallback(TAG, onLocationUpdate);
+                }
+            }
+        }
     }
 }

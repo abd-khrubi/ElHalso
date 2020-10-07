@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.project.callbacks.BusinessListReadyCallback;
 import com.example.project.data.Business;
 import com.example.project.data.Review;
 import com.example.project.data.User;
@@ -23,6 +24,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FirebaseHandler {
 
@@ -139,6 +141,24 @@ public class FirebaseHandler {
         });
     }
 
+    public void businessListener(BusinessListReadyCallback callback) {
+        firestore.collection(BUSINESS).addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.e(TAG, "businessListener: ", e);
+                return;
+            } else if (snapshots == null) {
+                Log.w(TAG, "businessListener: Empty snapshot");
+                return;
+            }
+            List<Business> businessList = new ArrayList<>();
+            for (DocumentSnapshot doc : snapshots) {
+                if (doc.get("name") != null) {
+                    businessList.add(doc.toObject(Business.class));
+                }
+            }
+            callback.onBusinessListReady(businessList);
+        });
+    }
     public void fetchCategoryBusinesses(String category){
         firestore.collection(BUSINESS).whereEqualTo("category", category).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override

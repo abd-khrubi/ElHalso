@@ -79,16 +79,24 @@ public class CategoriesFragment extends Fragment implements OnCategoryClick {
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         }
-
-        // get businesses
-        AppLoader appLoader = ((AppLoader) requireContext().getApplicationContext());
-        LocationTracker locationTracker = appLoader.getLocationTracker();
-
-        appLoader.fetchBusinesses(getViewLifecycleOwner(), locationTracker.getLastLocation().toGeoPoint(), 100000 /* user.radius */, () -> {
-            businesses = appLoader.getBusinessList();
-            getCategories();
-            populateList();
+        MainMapActivity mainActivity = (MainMapActivity) requireActivity();
+        mainActivity.callbacks.put(TAG, () -> {
+           businesses = mainActivity.businessList;
+           getCategories();
+           populateList();
         });
+//        ((MainMapActivity) requireActivity()).locationTracker.registerCallback(TAG, location ->  {
+//            // get businesses
+//            AppLoader appLoader = ((AppLoader) requireContext().getApplicationContext());
+//            LocationTracker locationTracker = appLoader.getLocationTracker();
+//
+//            appLoader.fetchBusinesses(getViewLifecycleOwner(), locationTracker.getLastLocation().toGeoPoint(), 100000 /* user.radius */, () -> {
+//                businesses = appLoader.getBusinessList();
+//                getCategories();
+//                populateList();
+//                ((MainMapActivity) requireActivity()).locationTracker.clearCallback(TAG);
+//            });
+//        });
         return view;
     }
 
