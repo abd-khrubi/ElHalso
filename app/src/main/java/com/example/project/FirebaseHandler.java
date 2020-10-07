@@ -159,6 +159,23 @@ public class FirebaseHandler {
             callback.onBusinessListReady(businessList);
         });
     }
+
+    public void updateUserRadius(User user) {
+        firestore.collection(USERS).document(user.getId()).update("radius", user.getRadius()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()) {
+                    Log.d(TAG, "successfully updated user's radius");
+                    objectToUpdate = user; // probably no need
+                    updateDone.postValue(true);
+                }
+                else {
+                    Log.d(TAG, "failed to update user's radius");
+                }
+            }
+        });
+    }
+
     public void fetchCategoryBusinesses(String category){
         firestore.collection(BUSINESS).whereEqualTo("category", category).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
