@@ -6,6 +6,7 @@ import android.os.Parcelable;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Random;
 
 public class Business implements Parcelable {
@@ -181,5 +182,18 @@ public class Business implements Parcelable {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Business business = (Business) o;
+        return id.equals(business.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

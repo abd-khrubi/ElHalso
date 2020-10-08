@@ -11,5 +11,5 @@
     android:scrollbarSize="5dp"
     android:scrollbars="vertical"
     app:layoutManager="LinearLayoutManager"
-    tools:context=".CategoriesFragment"
+    tools:context=".fragments.CategoriesFragment"
     tools:listitem="@layout/fragment_categories_list_item" />

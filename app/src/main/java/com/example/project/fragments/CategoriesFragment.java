@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -12,12 +12,13 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.project.MainMapActivity;
+import com.example.project.R;
 import com.example.project.adapters.CategoryItemRecyclerViewAdapter;
 import com.example.project.callbacks.OnCategoryClick;
 import com.example.project.data.Business;
-import com.example.project.location.LocationTracker;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,10 +105,15 @@ public class CategoriesFragment extends Fragment implements OnCategoryClick {
         categories = new HashMap<>();
 
         for (Business business : businesses) {
+            if (business.getCategory() == null) {
+                continue;
+            }
             if (categories.containsKey(business.getCategory())) {
                 categories.get(business.getCategory()).add(business);
             } else {
-                categories.put(business.getCategory(), Collections.singletonList(business));
+                ArrayList<Business> list = new ArrayList<>();
+                list.add(business);
+                categories.put(business.getCategory(), list);
             }
         }
     }

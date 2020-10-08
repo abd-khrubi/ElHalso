@@ -135,7 +135,8 @@ public class LocationTracker extends LocationCallback {
         if (!callbacks.containsKey(tag)) {
             callbacks.put(tag, callback);
         } else {
-            Log.w(TAG, "registerCallback: Callback " + tag + " already registered");
+            callbacks.remove(tag);
+            callbacks.put(tag, callback);
         }
     }
 

@@ -7,7 +7,7 @@ public class User {
     private String name;
     private String email;
     private String businessID;
-    private ArrayList<String> favorites;
+    private ArrayList<Business> favorites;
     private double radius;
     public User() { }
 
@@ -17,7 +17,7 @@ public class User {
         this.email = email;
     }
 
-    public User(String id, String name, String email, String businessID, ArrayList<String> favorites, double radius) {
+    public User(String id, String name, String email, String businessID, ArrayList<Business> favorites, double radius) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -42,30 +42,30 @@ public class User {
         return businessID;
     }
 
-    public ArrayList<String> getFavorites() {
-        return favorites == null ? new ArrayList<String>() : favorites;
+    public ArrayList<Business> getFavorites() {
+        return favorites == null ? new ArrayList<>() : favorites;
     }
 
     public double getRadius() {
         return radius;
     }
 
-    public void addFavoriteBusiness(String businessID){
+    public void addFavoriteBusiness(Business business){
         favorites = getFavorites();
-        if(!favorites.contains(businessID))
-            favorites.add(businessID);
+        if(!favorites.contains(business))
+            favorites.add(business);
     }
 
-    public void removeFavoriteBusiness(String businessID){
+    public void removeFavoriteBusiness(Business business){
         favorites = getFavorites();
-        favorites.remove(businessID);
+        favorites.remove(business);
     }
 
     public void setBusinessID(String businessID) {
         this.businessID = businessID;
     }
 
-    public void setFavorites(ArrayList<String> favorites) {
+    public void setFavorites(ArrayList<Business> favorites) {
         this.favorites = favorites;
     }
 

@@ -1,8 +1,13 @@
-package com.example.project;
+package com.example.project.fragments;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -16,6 +21,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 
+import com.example.project.FirebaseHandler;
+import com.example.project.MainMapActivity;
+import com.example.project.R;
 import com.example.project.adapters.MapMarkerAdapter;
 import com.example.project.data.Business;
 import com.example.project.location.LocationInfo;
@@ -24,6 +32,7 @@ import com.example.project.location.LocationTracker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -66,8 +75,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     };
 
     private LocationReceivedCallback onLocationUpdate = locationInfo -> {
-        if (mMap != null) {
+        if (mMap != null && isAdded()) {
             mMap.animateCamera(CameraUpdateFactory.newLatLng(locationInfo.toLatLng()));
+            addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
         }
     };
 
@@ -119,7 +129,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         locationTracker = ((MainMapActivity) requireActivity()).locationTracker;
         locationTracker.registerCallback(TAG, onLocationUpdate);
         ((MainMapActivity) requireActivity()).callbacks.put(TAG, () -> {
-            addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
+            if (locationTracker.getLastLocation() != null) {
+                addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
+            }
         });
     }
 
@@ -142,7 +154,13 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+//        mMap.setLocationSource(new MyLocationSource(((MainMapActivity)requireActivity()).locationTracker));
         mMap.setMyLocationEnabled(true);
+        mMap.setOnMyLocationClickListener(location -> {
+            Log.i(TAG, "onMapReady: " + location);
+        });
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(true);
     }
 
     @Override
@@ -166,6 +184,30 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                     locationTracker.registerCallback(TAG, onLocationUpdate);
                 }
             }
+        }
+    }
+
+    private static class MyLocationSource implements LocationSource {
+
+        private LocationTracker locationTracker;
+
+        MyLocationSource(LocationTracker locationTracker) {
+
+            this.locationTracker = locationTracker;
+        }
+        @Override
+        public void activate(OnLocationChangedListener onLocationChangedListener) {
+            locationTracker.registerCallback("loc_source", location -> {
+                Location loc = new Location(LocationManager.GPS_PROVIDER);
+                loc.setLatitude(location.getLatitude());
+                loc.setLongitude(location.getLongitude());
+                onLocationChangedListener.onLocationChanged(loc);
+            });
+        }
+
+        @Override
+        public void deactivate() {
+            locationTracker.clearCallback("loc_source");
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.project;
 
 import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -9,17 +10,19 @@ import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.project.callbacks.BusinessListReadyCallback;
 import com.example.project.callbacks.OnBusinessesReady;
 import com.example.project.data.Business;
 import com.example.project.data.User;
+import com.example.project.fragments.CategoriesFragment;
+import com.example.project.fragments.MapsFragment;
 import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationTracker;
+import com.google.android.gms.maps.LocationSource;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.GeoPoint;
 
@@ -39,6 +42,13 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
     public Map<String, OnBusinessesReady> callbacks; // callbacks for when businesses list changed
     public List<Business> businessList;
 
+    // Fragments
+    private final Fragment mapFragment = new MapsFragment();
+    private final Fragment catsFragment = new CategoriesFragment();
+    private Fragment active = mapFragment;
+
+    private final FragmentManager fm = getSupportFragmentManager();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,15 +58,24 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setTitle(getResources().getString(R.string.app_name));
 
-        BottomNavigationView navView = findViewById(R.id.nav_view);
+        BottomNavigationView navigation = findViewById(R.id.nav_view);
+        fm.beginTransaction().add(R.id.nav_container, catsFragment, "cats").hide(catsFragment).commit();
+        fm.beginTransaction().add(R.id.nav_container, mapFragment, "map").commit();
 
-        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_map, R.id.navigation_list
-        ).build();
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(navView, navController);
-
+        navigation.setOnNavigationItemSelectedListener(menuItem -> {
+            switch (menuItem.getItemId()) {
+                case R.id.navigation_map:
+                    fm.beginTransaction().hide(active).show(mapFragment).commit();
+                    active = mapFragment;
+                    return true;
+                case R.id.navigation_list:
+                    fm.beginTransaction().hide(active).show(catsFragment).commit();
+                    active = catsFragment;
+                    return true;
+                default:
+                    return false;
+            }
+        });
         locationTracker = new LocationTracker(this);
 
         callbacks = new HashMap<>();
@@ -122,7 +141,7 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
             float[] res = new float[1];
             Location.distanceBetween(bLoc.getLatitude(), bLoc.getLongitude(), location.getLatitude(), location.getLongitude(), res);
             if (res[0] < user.getRadius() * 1000) {
-                businessList.add(business);
+                filtered.add(business);
             }
         }
         return filtered;
