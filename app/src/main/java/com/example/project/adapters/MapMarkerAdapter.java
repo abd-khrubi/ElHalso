@@ -49,7 +49,7 @@ public class MapMarkerAdapter implements GoogleMap.InfoWindowAdapter {
         title.setText(business.getName());
         desc.setText(business.getDescription());
 
-        int starsAmt = (int) (business.getReviewsScore() * 10);
+        int starsAmt = (int) (business.getReviewsScore() * 2);
 
         if (starsAmt == 0) {
             starsLayout.setVisibility(View.INVISIBLE);

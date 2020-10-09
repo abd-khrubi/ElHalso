@@ -90,13 +90,14 @@ public class AppLoader extends Application {
 
     public void openProfile(final Context context, List<Business> businessList) {
         Gson gson = new Gson();
-        Intent intent = new Intent(context, ProfileMenuActivity.class);
+        Intent intent = new Intent(context, UserProfileActivity.class);
         intent.putExtra("businesses", gson.toJson(businessList));
         context.startActivity(intent);
     }
 
-    public void setRadius(int radius) {
+    public void setRadius(double radius) {
         this.user.setRadius(radius);
+        FirebaseHandler.getInstance().updateUserRadius(user);
     }
 
     public void showLoadingDialog(Context context, String title, String message) {

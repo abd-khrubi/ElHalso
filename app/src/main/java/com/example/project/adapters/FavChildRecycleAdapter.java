@@ -21,6 +21,7 @@ public class FavChildRecycleAdapter extends RecyclerView.Adapter<FavChildRecycle
 
     List<Business> items;
     Context context;
+
     public FavChildRecycleAdapter(List<Business> items, Context context) {
         this.items = items;
         this.context = context;
@@ -38,14 +39,14 @@ public class FavChildRecycleAdapter extends RecyclerView.Adapter<FavChildRecycle
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.itemTextView.setText(items.get(position).getName());
-        AppLoader context = (AppLoader)this.context.getApplicationContext();
+        AppLoader context = (AppLoader) this.context.getApplicationContext();
         holder.delBtn.setOnClickListener(v -> {
             Business to_be_deleted = items.get(position);
             items.remove(position);
-//                context.getUser().removeFavoriteBusiness(to_be_deleted.getId());
+            context.getUser().removeFavoriteBusiness(to_be_deleted);
             notifyDataSetChanged();
             final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
-            firebaseHandler.removeFavoriteBusiness(context.getUser(),to_be_deleted);
+            firebaseHandler.removeFavoriteBusiness(context.getUser(), to_be_deleted);
         });
     }
 
@@ -58,6 +59,7 @@ public class FavChildRecycleAdapter extends RecyclerView.Adapter<FavChildRecycle
 
         TextView itemTextView;
         ImageView delBtn;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
 

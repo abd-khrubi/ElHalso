@@ -167,8 +167,11 @@ public class Business implements Parcelable {
     }
 
     public float getReviewsScore() {
-        // TODO calculate total reviews (0-1)
-        return new Random().nextFloat();
+        float rating = 0;
+        for (Review review : reviews) {
+            rating += review.getRating();
+        }
+        return rating / reviews.size();
     }
 
     @Override

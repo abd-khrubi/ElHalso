@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,9 +16,9 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.project.AppLoader;
+import com.example.project.BusinessActivity;
 import com.example.project.MainMapActivity;
 import com.example.project.R;
-import com.example.project.WazeAndBusinessPageActivity;
 import com.example.project.adapters.MapMarkerAdapter;
 import com.example.project.data.Business;
 import com.example.project.data.User;
@@ -30,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -44,22 +44,19 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private static final String TAG = "MapsFragment";
     private GoogleMap mMap;
     private LocationTracker locationTracker;
-    private boolean firstZoom = true;
-    private CircleOptions radiusCircle = new CircleOptions();
-
+    private Circle radiusCircle;
     private Context context;
+    private boolean followLocation = true;
 
     private LocationReceivedCallback onLocationUpdate = locationInfo -> {
         if (mMap != null && isAdded()) {
             addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
             User user = ((AppLoader) requireContext().getApplicationContext()).getUser();
-            radiusCircle.center(locationInfo.toLatLng());
-            radiusCircle.radius(user.getRadius());
-            radiusCircle.fillColor(Color.RED);
-            mMap.addCircle(radiusCircle);
-            if (firstZoom) {
-                firstZoom = false;
-                mMap.animateCamera(getZoomForDistance(locationInfo.toLatLng(), user.getRadius()));
+            radiusCircle.setVisible(true);
+            radiusCircle.setCenter(locationInfo.toLatLng());
+            radiusCircle.setRadius(user.getRadius() * 1000);
+            if (followLocation) {
+                mMap.animateCamera(getZoomForDistance(locationTracker.getLastLocation().toLatLng(), user.getRadius() * 1000));
             }
         }
     };
@@ -71,13 +68,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             LatLng ll = new LatLng(business.getCoordinates().getLatitude(), business.getCoordinates().getLongitude());
             Marker marker = mMap.addMarker(new MarkerOptions()
                     .position(ll).title(business.getName()));
-
             marker.setTag(business);
             MapMarkerAdapter adapter = new MapMarkerAdapter(context);
             mMap.setInfoWindowAdapter(adapter);
             mMap.setOnInfoWindowClickListener(it -> {
                 Business b = (Business) it.getTag();
-                Intent intent = new Intent(context, WazeAndBusinessPageActivity.class);
+                Intent intent = new Intent(context, BusinessActivity.class);
                 intent.putExtra("business", b);
                 startActivity(intent);
             });
@@ -138,8 +134,26 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             return;
         }
         mMap.setMyLocationEnabled(true);
+        radiusCircle = mMap.addCircle(new CircleOptions()
+                .visible(false)
+                .center(new LatLng(0, 0))
+                .fillColor(getContext().getColor(R.color.user_radius_color))
+                .strokeWidth(0.1f)
+        );
+
+        mMap.setOnCameraMoveStartedListener(reason -> {
+            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+                followLocation = false;
+            }
+        });
         mMap.setOnMyLocationButtonClickListener(() -> {
-            return true;
+            if (locationTracker.getLastLocation() != null) {
+                User user = ((AppLoader) requireContext().getApplicationContext()).getUser();
+                mMap.animateCamera(getZoomForDistance(locationTracker.getLastLocation().toLatLng(), user.getRadius() * 1000));
+                followLocation = true;
+                return true;
+            }
+            return false;
         });
     }
 

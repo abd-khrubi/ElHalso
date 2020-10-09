@@ -2,7 +2,6 @@ package com.example.project;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -12,26 +11,12 @@ import androidx.lifecycle.Observer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.text.InputType;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.project.data.Business;
@@ -330,8 +315,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void goToUser() {
+        User user = ((AppLoader) getApplicationContext()).getUser();
         Intent intent;
-        intent = new Intent(this, MainMapActivity.class);
+        intent = new Intent(this, user.isFirstLogin() ? MainMapActivity.class : InitialSettingsActivity.class);
         startActivity(intent);
         finish();
     }

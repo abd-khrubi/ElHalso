@@ -110,7 +110,7 @@ public class BusinessListAdapter extends RecyclerView.Adapter<BusinessListAdapte
          * @param rating between 0 and 1
          */
         public void setRating(float rating) {
-            int stars_amt = (int) (rating * 10);
+            int stars_amt = (int) (rating * 2);
             for (int i = 0; i < stars_amt / 2; ++i) {
                 ImageView star = new ImageView(view.getContext());
                 star.setBackgroundResource(R.drawable.ic_twotone_star_24);

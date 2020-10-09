@@ -108,7 +108,7 @@ public class BusinessListActivity extends AppCompatActivity implements OnBusines
 
     @Override
     public void onBusinessClick(Business business) {
-        Intent intent = new Intent(this, WazeAndBusinessPageActivity.class);
+        Intent intent = new Intent(this, BusinessActivity.class);
         intent.putExtra("business", business);
         startActivity(intent);
     }

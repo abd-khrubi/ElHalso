@@ -1,5 +1,6 @@
 package com.example.project;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -95,7 +97,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch(item.getItemId()){
-            case R.id.home:
+            case android.R.id.home:
                 onBackPressed();
                 break;
             case R.id.action_edit:
@@ -171,15 +173,19 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             ownedBusiness = false;
         }
 
+        ImageView wazeImg = findViewById(R.id.waze_button);
+
         if(ownedBusiness) {
             galleryFolder = new File(getFilesDir(), business.getId());
             if(!galleryFolder.exists()){
                 galleryFolder.mkdir();
             }
+            wazeImg.setVisibility(View.INVISIBLE);
         }
         else {
             galleryFolder = Files.createTempDir();
             galleryFolder.deleteOnExit();
+            wazeImg.setVisibility(View.VISIBLE);
         }
     }
 
@@ -208,11 +214,11 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         int toDraw;
         if(user.getFavorites().contains(business.getId())){
             FirebaseHandler.getInstance().removeFavoriteBusiness(user, business);
-            toDraw = R.drawable.ic_is_favorite;
+            toDraw = R.drawable.ic_is_not_favorite;
         }
         else {
             FirebaseHandler.getInstance().addFavoriteBusiness(user, business);
-            toDraw = R.drawable.ic_is_not_favorite;
+            toDraw = R.drawable.ic_is_favorite;
         }
         menu.findItem(R.id.action_favorite).setIcon(toDraw);
     }
@@ -275,6 +281,23 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             downloadImages();
             ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
             setRatingBar();
+        }
+    }
+
+    public void onWazeClick(View view) {
+        if (business.getCoordinates() == null) {
+            Toast.makeText(this, "Location unavailable", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            String url = "https://waze.com/ul?ll=" + business.getCoordinates().getLatitude() + "%2C" +
+                    business.getCoordinates().getLongitude() + "&navigate=yes";
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        } catch (ActivityNotFoundException ex) {
+            // If Waze is not installed, open it in Google Play:
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.waze"));
+            startActivity(intent);
         }
     }
 }

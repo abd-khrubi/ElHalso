@@ -26,4 +26,12 @@
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <string name="title_activity_maps_tst">Map</string>
+    <string name="settings_radius_welcome">How far would you like the\n search area to be?</string>
+    <string name="done">Done</string>
+    <string name="text_radius_indicator">The radius of the search is: %.1f Km</string>
+    <string name="search_radius">Search Radius</string>
+    <string name="favorites">Favorites</string>
+
+    <string name="user_name">Welcome %s</string>
+    <string name="distance_km">%.1f Km</string>
 </resources>

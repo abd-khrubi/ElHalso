@@ -31,10 +31,9 @@
         <activity android:name=".BusinessListActivity" />
         <activity android:name=".MainMapActivity" />
         <activity
-            android:name=".Initial_distance_slider"
+            android:name=".InitialSettingsActivity"
             android:label="@string/title_activity_initial_distance_slider" />
-        <activity android:name=".WazeAndBusinessPageActivity" />
-        <activity android:name=".ProfileMenuActivity" />
+        <activity android:name=".UserProfileActivity" />
         <activity android:name=".ReviewsActivity" />
         <activity android:name=".GalleryActivity" />
         <activity android:name=".EditBusinessActivity" />

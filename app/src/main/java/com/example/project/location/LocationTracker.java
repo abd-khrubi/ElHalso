@@ -79,13 +79,7 @@ public class LocationTracker extends LocationCallback {
         ) {
             return;
         }
-        fusedLocationProviderClient.requestLocationUpdates(locationRequest, this, Looper.getMainLooper())
-                .addOnSuccessListener(aVoid -> {
-                    // TODO
-                })
-                .addOnFailureListener(e -> {
-                    // TODO
-                });
+        fusedLocationProviderClient.requestLocationUpdates(locationRequest, this, Looper.getMainLooper());
         tracking = true;
     }
 
@@ -99,8 +93,8 @@ public class LocationTracker extends LocationCallback {
 
     private void createLocationRequest() {
         locationRequest = LocationRequest.create()
-                .setInterval(10000) // 10 seconds
-                .setFastestInterval(5000) // 5 seconds
+                .setInterval(3000)
+                .setFastestInterval(1000)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
@@ -132,12 +126,8 @@ public class LocationTracker extends LocationCallback {
     }
 
     public void registerCallback(String tag, LocationReceivedCallback callback) {
-        if (!callbacks.containsKey(tag)) {
-            callbacks.put(tag, callback);
-        } else {
-            callbacks.remove(tag);
-            callbacks.put(tag, callback);
-        }
+        callbacks.remove(tag);
+        callbacks.put(tag, callback);
     }
 
     public void clearCallback(String tag) {

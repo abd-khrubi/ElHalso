@@ -9,6 +9,7 @@ public class User {
     private String businessID;
     private ArrayList<String> favorites;
     private double radius;
+    private boolean firstLogin;
     public User() { }
 
     public User(String id, String name, String email) {
@@ -17,13 +18,14 @@ public class User {
         this.email = email;
     }
 
-    public User(String id, String name, String email, String businessID, ArrayList<String> favorites, double radius) {
+    public User(String id, String name, String email, String businessID, ArrayList<String> favorites, double radius, boolean firstLogin) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.businessID = businessID;
         this.favorites = favorites;
         this.radius = radius;
+        this.firstLogin = firstLogin;
     }
 
     public String getId() {
@@ -50,6 +52,10 @@ public class User {
         return radius;
     }
 
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
     public void addFavoriteBusiness(Business business){
         favorites = getFavorites();
         if(!favorites.contains(business.getId()))
@@ -71,5 +77,9 @@ public class User {
 
     public void setRadius(double radius) {
         this.radius = radius;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
     }
 }

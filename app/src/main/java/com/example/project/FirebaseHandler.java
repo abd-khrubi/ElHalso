@@ -117,6 +117,7 @@ public class FirebaseHandler {
                         user.setBusinessID(userFetched.getBusinessID());
                         user.setFavorites(userFetched.getFavorites());
                         user.setRadius(userFetched.getRadius());
+                        user.setFirstLogin(userFetched.isFirstLogin());
                         objectToUpdate = user;
                         updateDone.postValue(true);
                     }
@@ -174,6 +175,19 @@ public class FirebaseHandler {
                 }
             }
         });
+    }
+
+    public void updateUserFirstLogin(User user) {
+        firestore.collection(USERS).document(user.getId()).update("firstLogin", user.isFirstLogin())
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "updateUserFirstLogin: Successfully updated first login");
+                        objectToUpdate = user;
+                        updateDone.postValue(true);
+                    } else {
+                        Log.d(TAG, "updateUserFirstLogin: Failed to update first login", task.getException());
+                    }
+                });
     }
 
     public void fetchCategoryBusinesses(String category){
