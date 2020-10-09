@@ -4,36 +4,33 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LiveData;
 
-import com.example.project.FirebaseHandler;
+import com.example.project.AppLoader;
 import com.example.project.MainMapActivity;
 import com.example.project.R;
+import com.example.project.WazeAndBusinessPageActivity;
 import com.example.project.adapters.MapMarkerAdapter;
 import com.example.project.data.Business;
-import com.example.project.location.LocationInfo;
+import com.example.project.data.User;
 import com.example.project.location.LocationReceivedCallback;
 import com.example.project.location.LocationTracker;
-import com.example.project.WazeAndBusinessPageActivity;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -41,42 +38,29 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 import com.ontbee.legacyforks.cn.pedant.SweetAlert.SweetAlertDialog;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private static final String TAG = "MapsFragment";
     private GoogleMap mMap;
     private LocationTracker locationTracker;
+    private boolean firstZoom = true;
+    private CircleOptions radiusCircle = new CircleOptions();
 
     private Context context;
 
-
-    private View.OnClickListener buttonClick = view -> {
-        Log.i(TAG, "tstButton: Click!!");
-        if (!locationTracker.isTrackerReady()) {
-            return;
-        }
-        final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
-        LocationInfo currentLocation = locationTracker.getLastLocation();
-        mMap.animateCamera(getZoomForDistance(currentLocation.toLatLng(), 100));
-        final Business[] business = new Business[1];
-        firebaseHandler.fetchNearbyBusinesses(currentLocation.toGeoPoint(), 100);
-        LiveData<Boolean> updateDone = firebaseHandler.getUpdate();
-        updateDone.observe(this, value -> {
-            if (!value) {
-                return;
-            }
-            updateDone.removeObservers(this);
-            //noinspection unchecked
-            addMarkers((ArrayList<Business>) firebaseHandler.getUpdatedObject());
-        });
-    };
-
     private LocationReceivedCallback onLocationUpdate = locationInfo -> {
         if (mMap != null && isAdded()) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(locationInfo.toLatLng()));
             addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
+            User user = ((AppLoader) requireContext().getApplicationContext()).getUser();
+            radiusCircle.center(locationInfo.toLatLng());
+            radiusCircle.radius(user.getRadius());
+            radiusCircle.fillColor(Color.RED);
+            mMap.addCircle(radiusCircle);
+            if (firstZoom) {
+                firstZoom = false;
+                mMap.animateCamera(getZoomForDistance(locationInfo.toLatLng(), user.getRadius()));
+            }
         }
     };
 
@@ -115,15 +99,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
-        Button button = view.findViewById(R.id.tt);
-        button.setOnClickListener(buttonClick);
 
         context = view.getContext();
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             String[] permissions = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-//            ActivityCompat.requestPermissions(requireActivity(), permissions, 1010);
             requestPermissions(permissions, 1010);
             return;
         }
@@ -156,13 +137,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-//        mMap.setLocationSource(new MyLocationSource(((MainMapActivity)requireActivity()).locationTracker));
         mMap.setMyLocationEnabled(true);
-        mMap.setOnMyLocationClickListener(location -> {
-            Log.i(TAG, "onMapReady: " + location);
+        mMap.setOnMyLocationButtonClickListener(() -> {
+            return true;
         });
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.getUiSettings().setCompassEnabled(true);
     }
 
     @Override
@@ -186,30 +164,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                     locationTracker.registerCallback(TAG, onLocationUpdate);
                 }
             }
-        }
-    }
-
-    private static class MyLocationSource implements LocationSource {
-
-        private LocationTracker locationTracker;
-
-        MyLocationSource(LocationTracker locationTracker) {
-
-            this.locationTracker = locationTracker;
-        }
-        @Override
-        public void activate(OnLocationChangedListener onLocationChangedListener) {
-            locationTracker.registerCallback("loc_source", location -> {
-                Location loc = new Location(LocationManager.GPS_PROVIDER);
-                loc.setLatitude(location.getLatitude());
-                loc.setLongitude(location.getLongitude());
-                onLocationChangedListener.onLocationChanged(loc);
-            });
-        }
-
-        @Override
-        public void deactivate() {
-            locationTracker.clearCallback("loc_source");
         }
     }
 }

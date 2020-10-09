@@ -1,9 +1,7 @@
 package com.example.project;
 
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -21,8 +19,6 @@ import com.example.project.fragments.CategoriesFragment;
 import com.example.project.fragments.MapsFragment;
 import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationTracker;
-import com.google.android.gms.maps.LocationSource;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.GeoPoint;
 

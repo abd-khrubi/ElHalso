@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -76,6 +77,10 @@ public class WazeAndBusinessPageActivity extends AppCompatActivity {
 
     void createWazeConnection(ImageButton waze) {
         waze.setOnClickListener(v -> {
+            if (business.getCoordinates() == null) {
+                Toast.makeText(this, "Location unavailable", Toast.LENGTH_SHORT).show();
+                return;
+            }
             try {
                 String url = "https://waze.com/ul?ll=" + business.getCoordinates().getLatitude() + "%2C" +
                         business.getCoordinates().getLongitude() + "&navigate=yes";

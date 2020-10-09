@@ -44,15 +44,15 @@ public class ProfileMenuActivity extends AppCompatActivity {
 
     private void initData() {
         AppLoader context = (AppLoader) getApplicationContext();
-        String[] stArr = context.getResources().getStringArray(R.array.categories);
-        for (String s : stArr) {
+        String[] categories = context.getResources().getStringArray(R.array.categories);
+        for (String category : categories) {
+            List<Business> bus = new ArrayList<>();
             for (Business b : getFavorites(context.getUser())) {
-                List<Business> bus = new ArrayList<>();
-                if (b.getCategory().equals(s)) {
+                if (b.getCategory().equals(category)) {
                     bus.add(b);
                 }
-                sectionList.add(new FavSection(s, bus));
             }
+            sectionList.add(new FavSection(category, bus));
         }
     }
     private List<Business> getFavorites(User user) {
