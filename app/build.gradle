@@ -59,5 +59,6 @@ dependencies {
     implementation 'com.google.guava:guava:27.0.1-android'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.github.thomper:sweet-alert-dialog:v1.4.0'
+    implementation 'me.zhanghai.android.materialratingbar:library:1.4.0'
 //    implementation 'com.firebaseui:firebase-ui-auth:6.2.0'
 }

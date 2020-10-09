@@ -4,8 +4,8 @@
     <string name="fb_login_protocol_scheme">fb2756767837945268</string>
     <string name="google_oauth2_client_id">372906604429-o7bs1okebd150j3rekbei9anq8leehjl.apps.googleusercontent.com</string>
     <string name="title_activity_initial_distance_slider">Initial_distance_slider</string>
-    <string-array name="categories" >
-<!--        first should be misc (as the default category)-->
+    <string-array name="categories">
+        <!--        first should be misc (as the default category)-->
         <item>Misc</item>
         <item>Barber</item>
         <item>Grocery</item>

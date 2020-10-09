@@ -1,13 +1,11 @@
 package com.example.project.fragments;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,6 +27,7 @@ import com.example.project.data.Business;
 import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationReceivedCallback;
 import com.example.project.location.LocationTracker;
+import com.example.project.WazeAndBusinessPageActivity;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -93,7 +92,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
             MapMarkerAdapter adapter = new MapMarkerAdapter(context);
             mMap.setInfoWindowAdapter(adapter);
             mMap.setOnInfoWindowClickListener(it -> {
-                Log.i(TAG, "addMarkers: " + it.getTitle());
+                Business b = (Business) it.getTag();
+                Intent intent = new Intent(context, WazeAndBusinessPageActivity.class);
+                intent.putExtra("business", b);
+                startActivity(intent);
             });
         }
     }

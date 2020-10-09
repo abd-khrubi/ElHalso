@@ -102,8 +102,7 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
                 ((AppLoader) getApplicationContext()).logout(this);
                 break;
             case R.id.action_settings:
-                // TODO open settings
-                Log.i(TAG, "onOptionsItemSelected: Settings");
+                ((AppLoader) getApplicationContext()).openProfile(this, businessList);
                 break;
             default:
                 return super.onOptionsItemSelected(item);

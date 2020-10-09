@@ -15,7 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <activity android:name=".BusinessListActivity"></activity>
         <activity android:name=".MainMapActivity" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
@@ -23,13 +25,14 @@
         <activity
             android:name=".Initial_distance_slider"
             android:label="@string/title_activity_initial_distance_slider" />
+        <activity android:name=".WazeAndBusinessPageActivity"/>
+        <activity android:name=".ProfileMenuActivity"/>
         <activity android:name=".ReviewsActivity" />
         <activity android:name=".GalleryActivity" />
         <activity android:name=".EditBusinessActivity" />
         <activity android:name=".BusinessActivity" />
         <activity android:name=".EmailLoginActivity" />
         <activity android:name=".LoginActivity">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

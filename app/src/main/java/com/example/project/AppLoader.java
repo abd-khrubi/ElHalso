@@ -14,6 +14,9 @@ import com.example.project.data.User;
 import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationTracker;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.gson.Gson;
+
+import java.util.List;
 
 
 public class AppLoader extends Application {
@@ -83,6 +86,13 @@ public class AppLoader extends Application {
             }
         });
         alertDialog.show();
+    }
+
+    public void openProfile(final Context context, List<Business> businessList) {
+        Gson gson = new Gson();
+        Intent intent = new Intent(context, ProfileMenuActivity.class);
+        intent.putExtra("businesses", gson.toJson(businessList));
+        context.startActivity(intent);
     }
 
     public void setRadius(int radius) {
