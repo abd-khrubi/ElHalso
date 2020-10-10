@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.data;
 
 import java.util.ArrayList;
 
@@ -8,7 +8,8 @@ public class User {
     private String email;
     private String businessID;
     private ArrayList<String> favorites;
-
+    private double radius;
+    private boolean firstLogin;
     public User() { }
 
     public User(String id, String name, String email) {
@@ -17,12 +18,14 @@ public class User {
         this.email = email;
     }
 
-    public User(String id, String name, String email, String businessID, ArrayList<String> favorites) {
+    public User(String id, String name, String email, String businessID, ArrayList<String> favorites, double radius, boolean firstLogin) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.businessID = businessID;
         this.favorites = favorites;
+        this.radius = radius;
+        this.firstLogin = firstLogin;
     }
 
     public String getId() {
@@ -42,18 +45,26 @@ public class User {
     }
 
     public ArrayList<String> getFavorites() {
-        return favorites == null ? new ArrayList<String>() : favorites;
+        return favorites == null ? new ArrayList<>() : favorites;
     }
 
-    public void addFavoriteBusiness(String businessID){
-        favorites = getFavorites();
-        if(!favorites.contains(businessID))
-            favorites.add(businessID);
+    public double getRadius() {
+        return radius;
     }
 
-    public void removeFavoriteBusiness(String businessID){
+    public boolean isFirstLogin() {
+        return firstLogin;
+    }
+
+    public void addFavoriteBusiness(Business business){
         favorites = getFavorites();
-        favorites.remove(businessID);
+        if(!favorites.contains(business.getId()))
+            favorites.add(business.getId());
+    }
+
+    public void removeFavoriteBusiness(Business business){
+        favorites = getFavorites();
+        favorites.remove(business.getId());
     }
 
     public void setBusinessID(String businessID) {
@@ -62,5 +73,13 @@ public class User {
 
     public void setFavorites(ArrayList<String> favorites) {
         this.favorites = favorites;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
+    }
+
+    public void setFirstLogin(boolean firstLogin) {
+        this.firstLogin = firstLogin;
     }
 }

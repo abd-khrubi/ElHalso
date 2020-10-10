@@ -3,10 +3,35 @@
     <string name="facebook_application_id">2756767837945268</string>
     <string name="fb_login_protocol_scheme">fb2756767837945268</string>
     <string name="google_oauth2_client_id">372906604429-o7bs1okebd150j3rekbei9anq8leehjl.apps.googleusercontent.com</string>
-    <string-array name="categories" >
-<!--        first should be misc (as the default category)-->
+    <string name="title_activity_initial_distance_slider">Initial_distance_slider</string>
+    <string-array name="categories">
+        <!--        first should be misc (as the default category)-->
         <item>Misc</item>
         <item>Barber</item>
         <item>Grocery</item>
     </string-array>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="title_activity_maps_tst">Map</string>
+    <string name="settings_radius_welcome">How far would you like the\n search area to be?</string>
+    <string name="done">Done</string>
+    <string name="text_radius_indicator">The radius of the search is: %.1f Km</string>
+    <string name="search_radius">Search Radius</string>
+    <string name="favorites">Favorites</string>
+
+    <string name="user_name">Welcome %s</string>
+    <string name="distance_km">%.1f Km</string>
 </resources>

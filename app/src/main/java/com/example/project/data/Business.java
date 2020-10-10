@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -6,6 +6,8 @@ import android.os.Parcelable;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
+import java.util.Objects;
+import java.util.Random;
 
 public class Business implements Parcelable {
     private String id;
@@ -17,7 +19,8 @@ public class Business implements Parcelable {
     private ArrayList<String> gallery;
     private ArrayList<Review> reviews;
 
-    public Business() { }
+    public Business() {
+    }
 
     public Business(String id) {
         this.id = id;
@@ -49,8 +52,9 @@ public class Business implements Parcelable {
         id = in.readString();
         name = in.readString();
         category = in.readString();
-        if(in.readInt() == 1)
+        if (in.readInt() == 1) {
             coordinates = new GeoPoint(in.readDouble(), in.readDouble());
+        }
         description = in.readString();
         logo = in.readString();
         gallery = in.createStringArrayList();
@@ -63,7 +67,7 @@ public class Business implements Parcelable {
         dest.writeString(name);
         dest.writeString(category);
         dest.writeInt(coordinates != null ? 1 : 0);
-        if(coordinates != null){
+        if (coordinates != null) {
             dest.writeDouble(coordinates.getLatitude());
             dest.writeDouble(coordinates.getLongitude());
         }
@@ -121,12 +125,12 @@ public class Business implements Parcelable {
         this.name = name;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void addReview(Review review) {
@@ -149,7 +153,7 @@ public class Business implements Parcelable {
 
     public void addImage(String image) {
         gallery = getGallery();
-        if(!gallery.contains(image))
+        if (!gallery.contains(image))
             gallery.add(image);
     }
 
@@ -162,8 +166,37 @@ public class Business implements Parcelable {
         this.gallery = gallery;
     }
 
+    public float getReviewsScore() {
+        float rating = 0;
+        for (Review review : reviews) {
+            rating += review.getRating();
+        }
+        return rating / reviews.size();
+    }
+
     @Override
     public int describeContents() {
         return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "Business{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Business business = (Business) o;
+        return id.equals(business.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

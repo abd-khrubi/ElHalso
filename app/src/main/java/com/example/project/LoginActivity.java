@@ -2,47 +2,30 @@ package com.example.project;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
+import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.text.InputType;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.example.project.data.Business;
+import com.example.project.data.User;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
-import com.facebook.appevents.AppEventsLogger;
-import com.facebook.internal.WebDialog;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 //import com.firebase.ui.auth.AuthUI;
@@ -61,12 +44,6 @@ import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.firestore.GeoPoint;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
     private CallbackManager mCallerbackManager;
@@ -149,6 +126,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void updateLoginType(boolean isBusiness){
+        Log.d(TAG, "updateLoginType: " + isBusiness);
         if(this.isBusinessLogin == isBusiness)
             return;
 
@@ -283,6 +261,7 @@ public class LoginActivity extends AppCompatActivity {
     private void successfulLogin() {
         FirebaseUser fUser = mFirebaseAuth.getCurrentUser();
         final User user = new User(fUser.getUid(), fUser.getDisplayName(), fUser.getEmail());
+        user.setRadius(100);
         final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
         final LiveData<Boolean> userUpdateDone = firebaseHandler.getUpdate();
 
@@ -304,6 +283,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(!isBusinessLogin) {
                     ((AppLoader)getApplicationContext()).dismissLoadingDialog();
                     // regular user log in
+                    goToUser();
                 }
                 else {
                     // need to fetch business for user
@@ -330,6 +310,14 @@ public class LoginActivity extends AppCompatActivity {
         ((AppLoader) getApplicationContext()).setBusiness(business);
         Intent intent;
         intent = new Intent(this, business.getName() == null ? EditBusinessActivity.class : BusinessActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void goToUser() {
+        User user = ((AppLoader) getApplicationContext()).getUser();
+        Intent intent;
+        intent = new Intent(this, user.isFirstLogin() ? MainMapActivity.class : InitialSettingsActivity.class);
         startActivity(intent);
         finish();
     }

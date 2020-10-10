@@ -1,4 +1,4 @@
-package com.example.project;
+package com.example.project.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +22,11 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.project.BuildConfig;
+import com.example.project.ImageHolder;
+import com.example.project.ImageMoveCallback;
+import com.example.project.R;
+import com.example.project.StartDragListener;
 import com.google.common.io.Files;
 import com.squareup.picasso.Picasso;
 

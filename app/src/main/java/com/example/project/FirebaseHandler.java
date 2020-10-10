@@ -1,19 +1,19 @@
 package com.example.project;
 
-import android.content.Context;
 import android.location.Location;
-import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.project.callbacks.BusinessListReadyCallback;
+import com.example.project.data.Business;
+import com.example.project.data.Review;
+import com.example.project.data.User;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -21,23 +21,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.ListResult;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static java.lang.Math.toRadians;
 
 public class FirebaseHandler {
 
@@ -125,10 +112,12 @@ public class FirebaseHandler {
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if(task.isSuccessful()){
                     DocumentSnapshot snap = task.getResult();
-                    if(snap.exists()) {
+                    if(snap != null && snap.exists()) {
                         User userFetched = snap.toObject(User.class);
                         user.setBusinessID(userFetched.getBusinessID());
                         user.setFavorites(userFetched.getFavorites());
+                        user.setRadius(userFetched.getRadius());
+                        user.setFirstLogin(userFetched.isFirstLogin());
                         objectToUpdate = user;
                         updateDone.postValue(true);
                     }
@@ -151,6 +140,54 @@ public class FirebaseHandler {
                 }
             }
         });
+    }
+
+    public void businessListener(BusinessListReadyCallback callback) {
+        firestore.collection(BUSINESS).addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.e(TAG, "businessListener: ", e);
+                return;
+            } else if (snapshots == null) {
+                Log.w(TAG, "businessListener: Empty snapshot");
+                return;
+            }
+            List<Business> businessList = new ArrayList<>();
+            for (DocumentSnapshot doc : snapshots) {
+                if (doc.get("name") != null) {
+                    businessList.add(doc.toObject(Business.class));
+                }
+            }
+            callback.onBusinessListReady(businessList);
+        });
+    }
+
+    public void updateUserRadius(User user) {
+        firestore.collection(USERS).document(user.getId()).update("radius", user.getRadius()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()) {
+                    Log.d(TAG, "successfully updated user's radius");
+                    objectToUpdate = user; // probably no need
+                    updateDone.postValue(true);
+                }
+                else {
+                    Log.d(TAG, "failed to update user's radius");
+                }
+            }
+        });
+    }
+
+    public void updateUserFirstLogin(User user) {
+        firestore.collection(USERS).document(user.getId()).update("firstLogin", user.isFirstLogin())
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "updateUserFirstLogin: Successfully updated first login");
+                        objectToUpdate = user;
+                        updateDone.postValue(true);
+                    } else {
+                        Log.d(TAG, "updateUserFirstLogin: Failed to update first login", task.getException());
+                    }
+                });
     }
 
     public void fetchCategoryBusinesses(String category){
@@ -200,7 +237,8 @@ public class FirebaseHandler {
                     Log.d(TAG, "successfully queried " + task.getResult().size() + " businesses");
                     ArrayList<Business> businesses = new ArrayList<>();
                     for(QueryDocumentSnapshot doc : task.getResult()){
-                        if(calculateDistance(myLocation, doc.getGeoPoint("coordinates")) <= distance*1000) {
+                        GeoPoint point = doc.getGeoPoint("coordinates");
+                        if(point != null && calculateDistance(myLocation, point) <= distance*1000) {
                             businesses.add(doc.toObject(Business.class));
                         }
                     }
@@ -329,11 +367,11 @@ public class FirebaseHandler {
     private void updateUserFavorites(User user, Business business, boolean isAdding) {
         FieldValue value;
         if(isAdding) {
-            user.addFavoriteBusiness(business.getId());
+            user.addFavoriteBusiness(business);
             value = FieldValue.arrayUnion(business.getId());
         }
         else {
-            user.removeFavoriteBusiness(business.getId());
+            user.removeFavoriteBusiness(business);
             value = FieldValue.arrayRemove(business.getId());
         }
         firestore.collection(USERS).document(user.getId()).update("favorites", value).addOnCompleteListener(new OnCompleteListener<Void>() {

@@ -8,16 +8,26 @@ import android.content.IntentFilter;
 import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.work.WorkManager;
 
+import com.example.project.data.Business;
+import com.example.project.data.User;
+import com.example.project.location.LocationInfo;
+import com.example.project.location.LocationTracker;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.gson.Gson;
+
+import java.util.List;
 
 
 public class AppLoader extends Application {
 
+    private static final String TAG = "AppLoader";
+
     private User user;
     private Business business;
     private UploadBroadcastReceiver uploadReceiver;
+    private LocationTracker locationTracker;
+    private LocationInfo locationInfo;
     private AlertDialog loadingDialog;
 
     public static final String UPLOAD_BROADCAST = "business_updated";
@@ -49,7 +59,11 @@ public class AppLoader extends Application {
         return uploadReceiver;
     }
 
-    public void logout(final Context context){
+    public LocationTracker getLocationTracker() {
+        return locationTracker;
+    }
+
+    public void logout(final Context context) {
         AlertDialog alertDialog = new AlertDialog.Builder(context).create();
         alertDialog.setTitle("Logout");
         alertDialog.setMessage("Are you sure you wish to logout?");
@@ -74,8 +88,20 @@ public class AppLoader extends Application {
         alertDialog.show();
     }
 
+    public void openProfile(final Context context, List<Business> businessList) {
+        Gson gson = new Gson();
+        Intent intent = new Intent(context, UserProfileActivity.class);
+        intent.putExtra("businesses", gson.toJson(businessList));
+        context.startActivity(intent);
+    }
+
+    public void setRadius(double radius) {
+        this.user.setRadius(radius);
+        FirebaseHandler.getInstance().updateUserRadius(user);
+    }
+
     public void showLoadingDialog(Context context, String title, String message) {
-        if(loadingDialog != null){
+        if (loadingDialog != null) {
             loadingDialog.setMessage(title);
             loadingDialog.setMessage(message);
             return;
@@ -91,7 +117,7 @@ public class AppLoader extends Application {
     }
 
     public void dismissLoadingDialog() {
-        if(loadingDialog != null) {
+        if (loadingDialog != null) {
             loadingDialog.dismiss();
             loadingDialog = null;
         }
