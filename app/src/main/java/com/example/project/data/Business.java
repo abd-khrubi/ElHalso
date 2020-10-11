@@ -2,10 +2,16 @@ package com.example.project.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import com.google.firebase.firestore.GeoPoint;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Objects;
 
 public class Business implements Parcelable {
@@ -135,7 +141,7 @@ public class Business implements Parcelable {
 
     public void addReview(Review review) {
         reviews = getReviews();
-        reviews.add(review);
+        reviews.add(0, review);
     }
 
     public void removeReview(Review review) {
@@ -168,15 +174,19 @@ public class Business implements Parcelable {
 
     public float getReviewsScore() {
         float rating = 0;
-        for (Review review : reviews) {
+        for (Review review : getReviews()) {
             rating += review.getRating();
         }
-        return rating / reviews.size();
+        return rating / getReviews().size();
     }
 
     @Override
     public int describeContents() {
         return 0;
+    }
+
+    public void sortReviews() {
+        Collections.sort(getReviews());
     }
 
     @Override

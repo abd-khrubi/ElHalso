@@ -177,6 +177,22 @@ public class FirebaseHandler {
         });
     }
 
+    public void updateBusinessLocation(Business business) {
+        firestore.collection(BUSINESS).document(business.getId()).update("coordinates", business.getCoordinates()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()) {
+                    Log.d(TAG, "successfully updated business's coordinates");
+                    objectToUpdate = business;
+                    updateDone.postValue(true);
+                }
+                else {
+                    Log.d(TAG, "failed to update business's coordinates");
+                }
+            }
+        });
+    }
+
     public void updateUserFirstLogin(User user) {
         firestore.collection(USERS).document(user.getId()).update("firstLogin", user.isFirstLogin())
                 .addOnCompleteListener(task -> {
@@ -386,7 +402,6 @@ public class FirebaseHandler {
     public void updateEditedBusiness(Business business) {
         firestore.collection(BUSINESS).document(business.getId()).update("name", business.getName(),
                 "description", business.getDescription(),
-                "coordinates", business.getCoordinates(),
                 "category", business.getCategory()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {

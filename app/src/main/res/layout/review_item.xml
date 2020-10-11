@@ -17,6 +17,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/postedAtTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="0dp"
+        android:text="Posted at:"
+        app:layout_constraintEnd_toStartOf="@id/reviewTimeTxt"
+        app:layout_constraintTop_toTopOf="@+id/userNameTxt" />
+
+    <TextView
+        android:id="@+id/reviewTimeTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:text="time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/postedAtTxt" />
+
     <RatingBar
         android:id="@+id/reviewRatingBar"
         style="?android:attr/ratingBarStyleSmall"

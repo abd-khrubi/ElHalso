@@ -2,28 +2,36 @@ package com.example.project.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
-public class Review implements Parcelable {
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class Review implements Parcelable , Comparable<Review> {
     private String businessID;
     private String  userID;
     private String userName;
+    private String time;
     private float rating;
     private String text;
 
     public Review() {}
 
-    public Review(String businessID, String userID, String userName, float rating, String text) {
+    public Review(String businessID, String userID, String userName, String time, float rating, String text) {
         this.businessID = businessID;
         this.userID = userID;
         this.userName = userName;
         this.rating = rating;
         this.text = text;
+        this.time = time;
     }
 
     protected Review(Parcel in) {
         businessID = in.readString();
         userID = in.readString();
         userName = in.readString();
+        time = in.readString();
         rating = in.readFloat();
         text = in.readString();
     }
@@ -52,6 +60,10 @@ public class Review implements Parcelable {
         return rating;
     }
 
+    public String getTime() {
+        return time;
+    }
+
     public String getUserID() {
         return userID;
     }
@@ -70,7 +82,21 @@ public class Review implements Parcelable {
         dest.writeString(businessID);
         dest.writeString(userID);
         dest.writeString(userName);
+        dest.writeString(time);
         dest.writeFloat(rating);
         dest.writeString(text);
+    }
+
+    @Override
+    public int compareTo(Review other) {
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy;HH:mm:ss");
+        try {
+            Date d1 = format.parse(getTime());
+            Date d2 = format.parse(other.getTime());
+            return d1.compareTo(d2)*-1;
+        } catch (ParseException e) {
+            Log.e("Business", e.toString());
+        }
+        return 0;
     }
 }

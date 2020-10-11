@@ -1,29 +1,36 @@
 package com.example.project;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.example.project.adapters.ReviewsAdapter;
 import com.example.project.data.Business;
 import com.example.project.data.Review;
+import com.example.project.data.User;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class ReviewsActivity extends AppCompatActivity {
-
 
     private Business business;
     private boolean ownedBusiness;
@@ -46,8 +53,9 @@ public class ReviewsActivity extends AppCompatActivity {
         }
         findViewById(R.id.noReviewsTxt).setVisibility(business.getReviews().size() > 0 ? View.GONE : View.VISIBLE);
 
+        business.sortReviews();
         reviewsRecyclerView = (RecyclerView) findViewById(R.id.reviewsRecyclerView);
-        adapter = new ReviewsAdapter(business.getReviews());
+        adapter = new ReviewsAdapter(business);
         reviewsRecyclerView.setAdapter(adapter);
         reviewsRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
 
@@ -84,6 +92,49 @@ public class ReviewsActivity extends AppCompatActivity {
     }
 
     private void addReview(){
+        final User user = ((AppLoader)getApplicationContext()).getUser();
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        final View promptView = layoutInflater.inflate(R.layout.dialog_add_review, null);
 
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+        final AlertDialog alertD = alertDialogBuilder.create();
+
+        Button postBtn = (Button) promptView.findViewById(R.id.postBtn);
+        Button cancelBtn = (Button) promptView.findViewById(R.id.cancelBtn);
+
+        postBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                float rating = ((RatingBar)promptView.findViewById(R.id.reviewRating)).getRating();
+
+                String text = ((EditText)promptView.findViewById(R.id.reviewTxt)).getText().toString();
+                SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy;HH:mm:ss");
+                Date date = new Date();
+                Review review = new Review(business.getId(), user.getId(), user.getName(), format.format(date), rating, text);
+                FirebaseHandler.getInstance().addReview(business, review);
+                if(business.getReviews().size() > 0){
+                    findViewById(R.id.noReviewsTxt).setVisibility(business.getReviews().size() > 0 ? View.GONE : View.VISIBLE);
+                }
+                adapter.notifyDataSetChanged();
+                alertD.dismiss();
+            }
+        });
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertD.dismiss();
+            }
+        });
+
+        alertD.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent backIntent = new Intent();
+        backIntent.putExtra("business", business);
+        setResult(RESULT_OK, backIntent);
+        finish();
     }
 }

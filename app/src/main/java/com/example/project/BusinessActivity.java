@@ -127,7 +127,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
         ((TextView)findViewById(R.id.categoryTxt)).setText("Category: " + business.getCategory());
         findViewById(R.id.noImagesTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
-        setRatingBar();
+        ((RatingBar)findViewById(R.id.ratingBar)).setRating(business.getReviewsScore());
     }
 
     private void onBusinessUpdate() {
@@ -188,14 +188,6 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
             galleryFolder.deleteOnExit();
             wazeImg.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void setRatingBar(){
-        float sum = 0;
-        for(Review review : business.getReviews()){
-            sum += review.getRating();
-        }
-        ((RatingBar)findViewById(R.id.ratingBar)).setRating(sum / business.getReviews().size());
     }
 
     public void editBusiness() {
@@ -286,8 +278,9 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         else if(requestCode == RC_REVIEWS && !ownedBusiness) {
             adapter.notifyDataSetChanged();
             downloadImages();
+            business = data.getParcelableExtra("business");
             ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
-            setRatingBar();
+            ((RatingBar)findViewById(R.id.ratingBar)).setRating(business.getReviewsScore());
         }
     }
 
