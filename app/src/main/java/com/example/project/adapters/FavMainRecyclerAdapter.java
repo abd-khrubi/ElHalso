@@ -1,5 +1,6 @@
 package com.example.project.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,9 +10,12 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.project.AppLoader;
+import com.example.project.FirebaseHandler;
 import com.example.project.R;
 import com.example.project.data.Business;
 import com.example.project.data.FavSection;
+import com.example.project.data.User;
 
 import java.util.List;
 
@@ -41,9 +45,23 @@ public class FavMainRecyclerAdapter extends RecyclerView.Adapter<FavMainRecycler
 
         holder.sectionNameTextView.setText(sectionName);
 
-        FavChildRecycleAdapter childRecyclerAdapter = new FavChildRecycleAdapter(items, this.context);
+        FavChildRecycleAdapter childRecyclerAdapter = new FavChildRecycleAdapter(items, this.context, pos -> {
+            User user = ((AppLoader)context.getApplicationContext()).getUser();
+            Business to_be_deleted = items.get(pos);
+            items.remove(pos);
+            if (items.size() == 0) {
+                sectionList.remove(position);
+                if (sectionList.size() == 0) {
+                    ((Activity)this.context).findViewById(R.id.no_fav_textView).setVisibility(View.VISIBLE);
+                }
+                notifyDataSetChanged();
+            }
+            user.removeFavoriteBusiness(to_be_deleted);
+            notifyDataSetChanged();
+            final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
+            firebaseHandler.removeFavoriteBusiness(user, to_be_deleted);
+        });
         holder.childRecyclerView.setAdapter(childRecyclerAdapter);
-
     }
 
     @Override

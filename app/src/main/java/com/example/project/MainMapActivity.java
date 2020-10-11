@@ -19,6 +19,8 @@ import com.example.project.fragments.CategoriesFragment;
 import com.example.project.fragments.MapsFragment;
 import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationTracker;
+import com.example.project.utils.Utils;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.firestore.GeoPoint;
 
@@ -40,7 +42,7 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
 
     // Fragments
     private final Fragment mapFragment = new MapsFragment();
-    private final Fragment catsFragment = new CategoriesFragment();
+    private final Fragment catsFragment = CategoriesFragment.newInstance(1);
     private Fragment active = mapFragment;
 
     private final FragmentManager fm = getSupportFragmentManager();
@@ -126,6 +128,9 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
 
     public List<Business> filterBusinesses() {
         List<Business> filtered = new ArrayList<>();
+        if (businessList == null || locationTracker == null || locationTracker.getLastLocation() == null) {
+            return filtered;
+        }
         User user = ((AppLoader) getApplicationContext()).getUser();
         LocationInfo location = locationTracker.getLastLocation();
         for (Business business : businessList) {
@@ -133,9 +138,8 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
             if (bLoc == null) {
                 continue;
             }
-            float[] res = new float[1];
-            Location.distanceBetween(bLoc.getLatitude(), bLoc.getLongitude(), location.getLatitude(), location.getLongitude(), res);
-            if (res[0] < user.getRadius() * 1000) {
+            float distance = Utils.distanceBetween(new LatLng(bLoc.getLatitude(), bLoc.getLongitude()), location.toLatLng());
+            if (distance < user.getRadius() * 1000) {
                 filtered.add(business);
             }
         }

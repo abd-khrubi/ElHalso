@@ -20,6 +20,8 @@ import com.example.project.adapters.CategoryItemRecyclerViewAdapter;
 import com.example.project.callbacks.OnCategoryClick;
 import com.example.project.data.Business;
 import com.example.project.location.LocationTracker;
+import com.example.project.utils.Utils;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -27,11 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link CategoriesFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class CategoriesFragment extends Fragment implements OnCategoryClick {
 
     private static final String TAG = "CategoriesFragment";
@@ -108,6 +106,31 @@ public class CategoriesFragment extends Fragment implements OnCategoryClick {
                 categories.put(business.getCategory(), list);
             }
         }
+        LocationTracker locationTracker = ((MainMapActivity) requireActivity()).locationTracker;
+        LatLng currentLocation = null;
+        if (locationTracker.getLastLocation() != null) {
+            currentLocation = locationTracker.getLastLocation().toLatLng();
+        }
+        if (currentLocation != null) {
+            for (List<Business> businesses : categories.values()) {
+                final LatLng finalCurrentLocation = currentLocation;
+                businesses.sort((b1, b2) -> {
+                    if (b1.getCoordinates() == null || b2.getCoordinates() == null) {
+                        return b1.getCoordinates() != null ? 1 : b2.getCoordinates() != null ? -1 : 0;
+                    }
+                    LatLng loc1 = new LatLng(b1.getCoordinates().getLatitude(), b1.getCoordinates().getLongitude());
+                    LatLng loc2 = new LatLng(b2.getCoordinates().getLatitude(), b2.getCoordinates().getLongitude());
+                    float d1 = Utils.distanceBetween(finalCurrentLocation, loc1);
+                    float d2 = Utils.distanceBetween(finalCurrentLocation, loc2);
+                    int f = Float.compare(d1, d2);
+                    if (f == 0) {
+                        return Float.compare(b1.getReviewsScore(), b2.getReviewsScore());
+                    } else {
+                        return f;
+                    }
+                });
+            }
+        }
     }
 
     public void populateList() {
@@ -123,8 +146,14 @@ public class CategoriesFragment extends Fragment implements OnCategoryClick {
         Intent intent = new Intent(requireContext(), BusinessListActivity.class);
         intent.putExtra("cat_name", category);
         intent.putExtra("business_list", gson.toJson(categories.get(category)));
-        LocationTracker locationTracker = ((MainMapActivity)requireActivity()).locationTracker;
+        LocationTracker locationTracker = ((MainMapActivity) requireActivity()).locationTracker;
         intent.putExtra("user_location", gson.toJson(locationTracker.getLastLocation()));
         startActivity(intent);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.i(TAG, "onResume: ");
     }
 }

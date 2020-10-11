@@ -24,7 +24,7 @@ public class Review implements Parcelable {
         businessID = in.readString();
         userID = in.readString();
         userName = in.readString();
-        rating = in.readInt();
+        rating = in.readFloat();
         text = in.readString();
     }
 

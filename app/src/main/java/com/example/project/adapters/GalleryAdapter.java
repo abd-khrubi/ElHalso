@@ -130,27 +130,24 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         File file = new File(galleryFolder, gallery.get(position));
         Picasso.get().load(Uri.fromFile(file)).fit().into(holder.imageView);
 
-        View.OnClickListener clickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(selecting) {
-                    if(selectedImages.contains(gallery.get(position))){
-                        selectedImages.remove(gallery.get(position));
-                        if(selectedImages.isEmpty()){
-                            triggerSelecting();
-                            return;
-                        }
-                        selectedImagesSize.postValue(selectedImages.size());
+        View.OnClickListener clickListener = v -> {
+            if(selecting) {
+                if(selectedImages.contains(gallery.get(position))){
+                    selectedImages.remove(gallery.get(position));
+                    if(selectedImages.isEmpty()){
+                        triggerSelecting();
+                        return;
                     }
-                    else {
-                        selectedImages.add(gallery.get(position));
-                        selectedImagesSize.postValue(selectedImages.size());
-                    }
-                    notifyItemChanged(position);
-                    return;
+                    selectedImagesSize.postValue(selectedImages.size());
                 }
-                viewImageInDefaultViewer(position);
+                else {
+                    selectedImages.add(gallery.get(position));
+                    selectedImagesSize.postValue(selectedImages.size());
+                }
+                notifyItemChanged(position);
+                return;
             }
+            viewImageInDefaultViewer(position);
         };
 
         holder.imageView.setOnClickListener(clickListener);
@@ -159,18 +156,15 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         if(!isEditMode)
             return;
 
-        holder.imageView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if(selecting && startDragListener != null) {
-                    startDragListener.requestDrag(holder);
-                    return true;
-                }
-                selectedImages.add(gallery.get(position));
-                selectedImagesSize.postValue(selectedImages.size());
-                triggerSelecting();
+        holder.imageView.setOnLongClickListener(v -> {
+            if(selecting && startDragListener != null) {
+                startDragListener.requestDrag(holder);
                 return true;
             }
+            selectedImages.add(gallery.get(position));
+            selectedImagesSize.postValue(selectedImages.size());
+            triggerSelecting();
+            return true;
         });
     }
 

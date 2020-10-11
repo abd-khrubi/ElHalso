@@ -7,7 +7,6 @@ import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Random;
 
 public class Business implements Parcelable {
     private String id;
@@ -26,7 +25,8 @@ public class Business implements Parcelable {
         this.id = id;
     }
 
-    public Business(String id, String name, String category, GeoPoint coordinates, String description, String logo, ArrayList<String> gallery, ArrayList<Review> reviews) {
+    public Business(String id, String name, String category, GeoPoint coordinates, String description,
+                    String logo, ArrayList<String> gallery, ArrayList<Review> reviews) {
         this.id = id;
         this.name = name;
         this.category = category;
@@ -114,11 +114,11 @@ public class Business implements Parcelable {
     }
 
     public ArrayList<String> getGallery() {
-        return gallery == null ? new ArrayList<String>() : gallery;
+        return gallery == null ? new ArrayList<>() : gallery;
     }
 
     public ArrayList<Review> getReviews() {
-        return reviews == null ? new ArrayList<Review>() : reviews;
+        return reviews == null ? new ArrayList<>() : reviews;
     }
 
     public void setName(String name) {

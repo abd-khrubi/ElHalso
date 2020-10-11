@@ -1,6 +1,7 @@
 package com.example.project.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.project.AppLoader;
+import com.example.project.BusinessActivity;
 import com.example.project.FirebaseHandler;
 import com.example.project.R;
+import com.example.project.callbacks.OnBusinessDelete;
 import com.example.project.data.Business;
 
 import java.util.List;
@@ -21,10 +24,13 @@ public class FavChildRecycleAdapter extends RecyclerView.Adapter<FavChildRecycle
 
     List<Business> items;
     Context context;
+    private OnBusinessDelete onItemDelete;
 
-    public FavChildRecycleAdapter(List<Business> items, Context context) {
+
+    public FavChildRecycleAdapter(List<Business> items, Context context, OnBusinessDelete onItemDelete) {
         this.items = items;
         this.context = context;
+        this.onItemDelete = onItemDelete;
     }
 
     @NonNull
@@ -40,13 +46,11 @@ public class FavChildRecycleAdapter extends RecyclerView.Adapter<FavChildRecycle
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.itemTextView.setText(items.get(position).getName());
         AppLoader context = (AppLoader) this.context.getApplicationContext();
-        holder.delBtn.setOnClickListener(v -> {
-            Business to_be_deleted = items.get(position);
-            items.remove(position);
-            context.getUser().removeFavoriteBusiness(to_be_deleted);
-            notifyDataSetChanged();
-            final FirebaseHandler firebaseHandler = FirebaseHandler.getInstance();
-            firebaseHandler.removeFavoriteBusiness(context.getUser(), to_be_deleted);
+        holder.delBtn.setOnClickListener(v -> this.onItemDelete.onBusinessDelete(position));
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, BusinessActivity.class);
+            intent.putExtra("business", items.get(position));
+            FavChildRecycleAdapter.this.context.startActivity(intent);
         });
     }
 
@@ -55,7 +59,7 @@ public class FavChildRecycleAdapter extends RecyclerView.Adapter<FavChildRecycle
         return items.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView itemTextView;
         ImageView delBtn;

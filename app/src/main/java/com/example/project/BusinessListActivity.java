@@ -70,12 +70,12 @@ public class BusinessListActivity extends AppCompatActivity implements OnBusines
         User user = ((AppLoader) getApplicationContext()).getUser();
 
         for (Business business : businesses) {
-            if (user.getFavorites().contains(business)) {
+            if (user.getFavorites().contains(business.getId())) {
                 adapter.mValues.add(business);
             }
         }
         for (Business business : businesses) {
-            if (!user.getFavorites().contains(business)) {
+            if (!user.getFavorites().contains(business.getId())) {
                 adapter.mValues.add(business);
             }
         }

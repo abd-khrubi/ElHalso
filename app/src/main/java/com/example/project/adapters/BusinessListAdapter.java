@@ -1,7 +1,6 @@
 package com.example.project.adapters;
 
 import android.content.Context;
-import android.location.Location;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +17,8 @@ import com.example.project.callbacks.OnBusinessClick;
 import com.example.project.data.Business;
 import com.example.project.data.User;
 import com.example.project.location.LocationInfo;
+import com.example.project.utils.Utils;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.ArrayList;
@@ -61,21 +62,21 @@ public class BusinessListAdapter extends RecyclerView.Adapter<BusinessListAdapte
         Business item = mValues.get(position);
         User user = ((AppLoader) context.getApplicationContext()).getUser();
 
-        boolean isFav = user.getFavorites().contains(item);
+        boolean isFav = user.getFavorites().contains(item.getId());
         holder.isFavImageView.setVisibility(isFav ? View.VISIBLE : View.INVISIBLE);
         holder.nameTextView.setText(item.getName());
 
         String distance = "";
         if (locationInfo != null && item.getCoordinates() != null) {
-            float[] result = new float[1];
             LocationInfo loc1 = locationInfo;
             GeoPoint loc2 = item.getCoordinates();
-            Location.distanceBetween(loc1.getLatitude(), loc1.getLongitude(), loc2.getLatitude(), loc2.getLongitude(), result);
-            float dist = result[0];
+            float dist = Utils.distanceBetween(loc1.toLatLng(), new LatLng(loc2.getLatitude(), loc2.getLongitude()));
             if (dist < 1000) {
-                distance = String.format("%.2f m", dist);
+//                distance = String.format("%.2f m", dist);
+                distance = context.getResources().getString(R.string.distance_m_km, dist, "m");
             } else {
-                distance = String.format("%.2f km", dist / 1000f);
+                distance = context.getResources().getString(R.string.distance_m_km, dist / 1000f, "Km");
+//                distance = String.format("%.2f km", dist / 1000f);
             }
         }
         holder.distanceTextView.setText(distance);
@@ -106,9 +107,6 @@ public class BusinessListAdapter extends RecyclerView.Adapter<BusinessListAdapte
             ratingLayout = view.findViewById(R.id.business_rating);
         }
 
-        /**
-         * @param rating between 0 and 1
-         */
         public void setRating(float rating) {
             int stars_amt = (int) (rating * 2);
             for (int i = 0; i < stars_amt / 2; ++i) {
