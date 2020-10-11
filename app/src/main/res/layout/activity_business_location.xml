@@ -26,14 +26,14 @@
         app:layout_constraintTop_toBottomOf="@id/businessLocationToolbar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
-        android:id="@+id/manual_location_button"
+        android:id="@+id/manualLocationBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
+        android:textAllCaps="false"
 
         android:text="@string/set_location_manually"
 
@@ -43,18 +43,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintVertical_bias="1"
-        android:onClick="onSetLocationButton"
-        />
+        android:onClick="onSetLocationManuallyButton" />
+
     <Button
-        android:id="@+id/home_button"
+        android:id="@+id/confirmLocationBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/home"
-        app:layout_constraintTop_toTopOf="@id/manual_location_button"
-        app:layout_constraintBottom_toBottomOf="@id/manual_location_button"
-        app:layout_constraintStart_toEndOf="@id/manual_location_button"
+        android:textAllCaps="false"
+        android:visibility="gone"
+        android:text="@string/set_business_location"
+        app:layout_constraintTop_toTopOf="@id/manualLocationBtn"
+        app:layout_constraintBottom_toBottomOf="@id/manualLocationBtn"
+        app:layout_constraintStart_toEndOf="@id/manualLocationBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.8"
-        android:onClick="onHomeButton"
-        />
+        android:onClick="onSetButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

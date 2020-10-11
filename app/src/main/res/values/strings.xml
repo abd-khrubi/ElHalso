@@ -35,6 +35,6 @@
     <string name="user_name">Welcome %s</string>
     <string name="distance_km">%.1f Km</string>
     <string name="title_activity_business_location">Map</string>
-    <string name="set_location_manually">Set Location Manually</string>
-    <string name="home">Home</string>
+    <string name="set_location_manually">Set Location Coordinates</string>
+    <string name="set_business_location">Set</string>
 </resources>

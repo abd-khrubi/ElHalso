@@ -39,6 +39,7 @@ public class EditBusinessActivity extends AppCompatActivity {
 
     private static final int RC_EDIT_GALLERY = 481;
     private static final int RC_CHANGE_LOGO = 543;
+    private static final int RC_SET_LOCATION = 870;
     private static final String TAG = "EditBusinessActivity";
 
     @Override
@@ -51,7 +52,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         if(!galleryFolder.exists())
             galleryFolder.mkdir();
         onBusinessUpdate();
-        // categories
+
         categorySpinner = (Spinner) findViewById(R.id.categorySpinner);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, getResources().getStringArray(R.array.categories));
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -143,7 +144,8 @@ public class EditBusinessActivity extends AppCompatActivity {
     }
 
     public void saveBusiness() {
-        if(!validateDetails()) {
+        if(nameTxt.getText().toString().trim().length() < 3){
+            showMessage("Business name is too short.");
             return;
         }
 
@@ -155,7 +157,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         business.setName(nameTxt.getText().toString());
         business.setDescription(descriptionTxt.getText().toString());
         business.setCategory((String) categorySpinner.getSelectedItem());
-        // todo: add location
+
         if(newLogoUri != null) {
             if(business.getLogo() != null) {
                 File logo = new File(galleryFolder, business.getLogo());
@@ -186,17 +188,7 @@ public class EditBusinessActivity extends AppCompatActivity {
                 || !origDescription.equals(descriptionTxt.getText().toString())
                 || (newLogoUri != null)
                 || !business.getCategory().equals(categorySpinner.getSelectedItem());
-//                && locationChanged;
 
-    }
-
-    private boolean validateDetails(){
-        if(nameTxt.getText().toString().trim().length() < 3){
-            showMessage("Business name is too short.");
-            return false;
-        }
-
-        return true;
     }
 
     private void showMessage(String msg){
@@ -209,7 +201,8 @@ public class EditBusinessActivity extends AppCompatActivity {
     }
 
     public void setLocationButton(View view) {
-        // open map
+        Intent intent = new Intent(this, BusinessLocationActivity.class);
+        startActivityForResult(intent, RC_SET_LOCATION);
     }
 
     @Override
@@ -237,6 +230,5 @@ public class EditBusinessActivity extends AppCompatActivity {
         outState.putInt("selected_category", categorySpinner.getSelectedItemPosition());
         if(newLogoUri != null)
             outState.putString("newLogo", newLogoUri.toString());
-        // todo: location
     }
 }

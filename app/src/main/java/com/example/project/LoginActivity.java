@@ -161,11 +161,13 @@ public class LoginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(getApplicationContext());
 
         mCallerbackManager = CallbackManager.Factory.create();
-        LoginButton fbLoginBtn = (LoginButton) findViewById(R.id.fbLoginBtn);
+        final LoginButton fbLoginBtn = (LoginButton) findViewById(R.id.fbLoginBtn);
         fbLoginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((AppLoader)getApplicationContext()).showLoadingDialog(LoginActivity.this, "Authenticating", "Connecting with Facebook...");
+                if(!fbLoginBtn.getText().toString().equals("Log out")) {
+                    ((AppLoader) getApplicationContext()).showLoadingDialog(LoginActivity.this, "Authenticating", "Connecting with Facebook...");
+                }
             }
         });
         fbLoginBtn.registerCallback(mCallerbackManager, new FacebookCallback<LoginResult>() {
@@ -228,6 +230,8 @@ public class LoginActivity extends AppCompatActivity {
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
                 Log.d(TAG, "Google sign in failed", e);
+                ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                showMessage("Error connecting with " + getString(R.string.app_name));
             }
         }
         else if(requestCode == RC_EMAIL_SIGN_IN && resultCode == RESULT_OK){

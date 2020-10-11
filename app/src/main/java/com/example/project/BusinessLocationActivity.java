@@ -5,10 +5,15 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -21,8 +26,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.firestore.GeoPoint;
 import com.ontbee.legacyforks.cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class BusinessLocationActivity extends AppCompatActivity implements OnMapReadyCallback, LocationReceivedCallback {
@@ -33,8 +40,6 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
     private GoogleMap mMap;
     private Marker currentChoice;
     private LocationTracker locationTracker;
-    private SweetAlertDialog loadingDialog;
-
     private Business business;
 
 
@@ -43,62 +48,88 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_business_location);
 
-        if (getIntent().hasExtra("business")) {
-            business = getIntent().getParcelableExtra("business");
-        }
-
+        business = ((AppLoader)getApplicationContext()).getBusiness();
         setSupportActionBar((Toolbar) findViewById(R.id.businessLocationToolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(business != null ? business.getName() :
-                getResources().getString(R.string.app_name)
-        );
+        getSupportActionBar().setTitle(business.getName() != null ? business.getName() : "<No Name>");
+        getSupportActionBar().setSubtitle("Set Location");
 
         locationTracker = new LocationTracker(this);
         locationTracker.registerCallback(TAG, this);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        loadingDialog = new SweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE);
-        loadingDialog.setTitleText("Loading location")
-                .setCanceledOnTouchOutside(false);
-        loadingDialog.show();
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    PERMISSION_REQ);
-            return;
-        }
-        mMap.setMyLocationEnabled(true);
+
         mMap.setOnMapClickListener(latLng -> {
             if (currentChoice == null) {
                 currentChoice = mMap.addMarker(new MarkerOptions().position(latLng));
             } else {
                 currentChoice.setPosition(latLng);
             }
+            findViewById(R.id.confirmLocationBtn).setVisibility(View.VISIBLE);
         });
+        if(business.getCoordinates() != null) {
+            LatLng pos = new LatLng(business.getCoordinates().getLatitude(), business.getCoordinates().getLongitude());
+            currentChoice = mMap.addMarker(new MarkerOptions().position(pos));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 13));
+        }
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSION_REQ);
+            return;
+        }
+
+        mMap.setMyLocationEnabled(true);
     }
 
     /**
      * SetLocationManually button event
      */
-    public void onSetLocationButton(View view) {
-        // TODO enter location manually
+    public void onSetLocationManuallyButton(View view) {
+        LayoutInflater layoutInflater = LayoutInflater.from(this);
+        final View promptView = layoutInflater.inflate(R.layout.dialog_set_location_manually, null);
+
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setView(promptView);
+        final AlertDialog alertD = alertDialogBuilder.create();
+
+        promptView.findViewById(R.id.viewBtn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String latitude = ((EditText)promptView.findViewById(R.id.latitudeTxt)).getText().toString();
+                String longitude = ((EditText)promptView.findViewById(R.id.longitudeTxt)).getText().toString();
+
+                if(latitude.equals("") || longitude.equals("")){
+                    Toast.makeText(BusinessLocationActivity.this, "Can't enter empty value!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                LatLng pos = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
+                if (currentChoice == null) {
+                    currentChoice = mMap.addMarker(new MarkerOptions().position(pos));
+                } else {
+                    currentChoice.setPosition(pos);
+                }
+                findViewById(R.id.confirmLocationBtn).setVisibility(View.VISIBLE);
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 13));
+                alertD.dismiss();
+            }
+        });
+
+        alertD.show();
     }
 
     /**
      * Home button event
      */
-    public void onHomeButton(View view) {
-        Intent intent = new Intent();
-        if (currentChoice != null) {
-            intent.putExtra("location", currentChoice.getPosition());
-        }
-        setResult(RESULT_OK, intent); // Maybe return `RESULT_CANCELED` if no location is set?
+    public void onSetButton(View view) {
+        business.setCoordinates(new GeoPoint(currentChoice.getPosition().latitude, currentChoice.getPosition().longitude));
+        FirebaseHandler.getInstance().updateBusinessLocation(business);
         finish();
     }
 
@@ -109,9 +140,7 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
      */
     @Override
     public void onLocationReceived(LocationInfo location) {
-        if (loadingDialog != null) {
-            loadingDialog.dismissWithAnimation();
-            loadingDialog = null;
+        if (currentChoice == null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     location.toLatLng(),
                     13
@@ -126,17 +155,7 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
         if (requestCode == PERMISSION_REQ) {
             for (int i = 0; i < permissions.length; i++) {
                 if ((permissions[i].equals(Manifest.permission.ACCESS_FINE_LOCATION) || permissions[i].equals(Manifest.permission.ACCESS_COARSE_LOCATION))
-                        && grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                    SweetAlertDialog dialog = new SweetAlertDialog(this, SweetAlertDialog.ERROR_TYPE);
-                    dialog.setTitleText("Location must be enabled");
-                    dialog.setOnDismissListener(d -> {
-                        d.dismiss();
-                        String[] p = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-                        requestPermissions(p, PERMISSION_REQ);
-                    });
-                    dialog.show();
-                    return;
-                } else {
+                        && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                     mMap.setMyLocationEnabled(true);
                     locationTracker.registerCallback(TAG, this);
                 }
