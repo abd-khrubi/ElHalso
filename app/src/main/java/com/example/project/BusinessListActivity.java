@@ -2,13 +2,11 @@ package com.example.project;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.project.adapters.BusinessListAdapter;
@@ -16,11 +14,14 @@ import com.example.project.callbacks.OnBusinessClick;
 import com.example.project.data.Business;
 import com.example.project.data.User;
 import com.example.project.location.LocationInfo;
+import com.example.project.utils.Utils;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class BusinessListActivity extends AppCompatActivity implements OnBusinessClick {
@@ -31,6 +32,7 @@ public class BusinessListActivity extends AppCompatActivity implements OnBusines
     private RecyclerView recyclerView;
     private List<Business> businesses;
     private String category;
+    private LocationInfo locationInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,14 +49,14 @@ public class BusinessListActivity extends AppCompatActivity implements OnBusines
         }.getType();
         businesses = gson.fromJson(payload, listType);
         payload = getIntent().getStringExtra("user_location");
-        LocationInfo locationInfo = null;
+        locationInfo = null;
         if (payload != null && payload.length() > 0) {
             locationInfo = gson.fromJson(payload, LocationInfo.class);
         }
 
         category = getIntent().getStringExtra("cat_name");
 
-        setSupportActionBar((Toolbar) findViewById(R.id.user_toolbar));
+        setSupportActionBar(findViewById(R.id.user_toolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(category);
 
@@ -68,7 +70,9 @@ public class BusinessListActivity extends AppCompatActivity implements OnBusines
 
     private void populateList() {
         User user = ((AppLoader) getApplicationContext()).getUser();
-
+        if (user == null) {
+            return;
+        }
         for (Business business : businesses) {
             if (user.getFavorites().contains(business.getId())) {
                 adapter.mValues.add(business);
@@ -79,8 +83,41 @@ public class BusinessListActivity extends AppCompatActivity implements OnBusines
                 adapter.mValues.add(business);
             }
         }
+        adapter.mValues.sort(businessComparator);
         adapter.notifyDataSetChanged();
     }
+
+    private Comparator<Business> businessComparator = (b1, b2) -> {
+        User user = ((AppLoader) getApplicationContext()).getUser();
+        int favCompare = Boolean.compare(user.getFavorites().contains(b1.getId()), user.getFavorites().contains(b2.getId()));
+        if (favCompare != 0 || locationInfo == null) {
+            return -favCompare;
+        }
+
+        LatLng loc1;
+        LatLng loc2;
+        try {
+            loc1 = new LatLng(b1.getCoordinates().getLatitude(), b1.getCoordinates().getLongitude());
+            loc2 = new LatLng(b2.getCoordinates().getLatitude(), b2.getCoordinates().getLongitude());
+        } catch (NullPointerException e) { // either b1 or b2 does not have a location
+            if (b1.getCoordinates() != null) {
+                return 1;
+            } else if (b2.getCoordinates() != null) {
+                return -1;
+            } else {
+                return -Float.compare(b1.getReviewsScore(), b2.getReviewsScore());
+            }
+        }
+        float dist1 = Utils.distanceBetween(locationInfo.toLatLng(), loc1);
+        float dist2 = Utils.distanceBetween(locationInfo.toLatLng(), loc2);
+
+        int distCompare = Float.compare(dist1, dist2);
+        if (distCompare != 0) {
+            return distCompare;
+        } else {
+            return -Float.compare(b1.getReviewsScore(), b2.getReviewsScore());
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -128,10 +128,10 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
 
     public List<Business> filterBusinesses() {
         List<Business> filtered = new ArrayList<>();
-        if (businessList == null || locationTracker == null || locationTracker.getLastLocation() == null) {
+        User user = ((AppLoader) getApplicationContext()).getUser();
+        if (user == null || businessList == null || locationTracker == null || locationTracker.getLastLocation() == null) {
             return filtered;
         }
-        User user = ((AppLoader) getApplicationContext()).getUser();
         LocationInfo location = locationTracker.getLastLocation();
         for (Business business : businessList) {
             GeoPoint bLoc = business.getCoordinates();

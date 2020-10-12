@@ -52,9 +52,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private boolean followLocation = true;
 
     private LocationReceivedCallback onLocationUpdate = locationInfo -> {
-        if (mMap != null && isAdded()) {
+        User user = ((AppLoader) requireContext().getApplicationContext()).getUser();
+        if (mMap != null && user != null && isAdded()) {
             updateMarkers();
-            User user = ((AppLoader) requireContext().getApplicationContext()).getUser();
             radiusCircle.setVisible(true);
             radiusCircle.setCenter(locationInfo.toLatLng());
             radiusCircle.setRadius(user.getRadius() * 1000);

@@ -54,8 +54,12 @@
 
         android:orientation="horizontal"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/business_distance"
-        app:layout_constraintStart_toStartOf="@id/business_distance"
-        app:layout_constraintTop_toBottomOf="@id/business_distance"/>
+        app:layout_constraintTop_toBottomOf="@id/business_distance"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.9"
+
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

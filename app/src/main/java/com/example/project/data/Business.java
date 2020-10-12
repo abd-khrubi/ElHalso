@@ -174,6 +174,9 @@ public class Business implements Parcelable {
 
     public float getReviewsScore() {
         float rating = 0;
+        if (getReviews().size() == 0) {
+            return 0;
+        }
         for (Review review : getReviews()) {
             rating += review.getRating();
         }

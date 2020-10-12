@@ -34,6 +34,7 @@ public class MapMarkerAdapter implements GoogleMap.InfoWindowAdapter {
 
         TextView title = view.findViewById(R.id.marker_name);
         TextView desc = view.findViewById(R.id.marker_desc);
+        TextView cat = view.findViewById(R.id.marker_cat);
         LinearLayout starsLayout = view.findViewById(R.id.stars_container);
 
 
@@ -41,18 +42,19 @@ public class MapMarkerAdapter implements GoogleMap.InfoWindowAdapter {
         if (business == null) {
             Log.w(TAG, "getInfoContents: Invalid marker");
             title.setText(marker.getTitle());
-            desc.setVisibility(View.INVISIBLE);
-            starsLayout.setVisibility(View.INVISIBLE);
+            desc.setVisibility(View.GONE);
+            starsLayout.setVisibility(View.GONE);
             return view;
         }
 
         title.setText(business.getName());
         desc.setText(business.getDescription());
+        cat.setText(view.getResources().getString(R.string.category_marker_text, business.getCategory()));
 
         int starsAmt = (int) (business.getReviewsScore() * 2);
 
         if (starsAmt == 0) {
-            starsLayout.setVisibility(View.INVISIBLE);
+            starsLayout.setVisibility(View.GONE);
         } else {
             for (int i = 0; i < (int) (starsAmt / 2); ++i) {
                 ImageView ii = new ImageView(context);

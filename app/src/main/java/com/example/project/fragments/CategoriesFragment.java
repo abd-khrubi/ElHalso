@@ -134,6 +134,7 @@ public class CategoriesFragment extends Fragment implements OnCategoryClick {
     }
 
     public void populateList() {
+        adapter.mValues.clear();
         adapter.mValues.addAll(categories.keySet());
         adapter.notifyDataSetChanged();
     }
