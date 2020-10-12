@@ -1,7 +1,5 @@
 package com.example.project.data;
 
-import com.example.project.data.Business;
-
 import java.util.List;
 
 public class FavSection {

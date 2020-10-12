@@ -57,7 +57,7 @@ public class LocationTracker extends LocationCallback {
 
         for (Location location : locationResult.getLocations()) {
             LocationInfo loc = new LocationInfo(location.getLatitude(), location.getLongitude(), location.getAccuracy());
-            Log.i(TAG, "onLocationResult: Got location: " + loc);
+            Log.d(TAG, "onLocationResult: Got location: " + loc);
 
             if (loc != lastLocation) {
                 lastLocation = loc;

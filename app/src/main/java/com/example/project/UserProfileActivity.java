@@ -3,6 +3,7 @@ package com.example.project;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -57,7 +58,9 @@ public class UserProfileActivity extends AppCompatActivity {
         setDistanceBar();
 
         initData();
-
+        if (sectionList.size() > 0) {
+            findViewById(R.id.no_fav_textView).setVisibility(View.INVISIBLE);
+        }
         RecyclerView mainRecyclerView = findViewById(R.id.fav_recyclerView);
         FavMainRecyclerAdapter mainRecyclerAdapter = new FavMainRecyclerAdapter(sectionList, this);
         mainRecyclerView.setAdapter(mainRecyclerAdapter);
@@ -86,10 +89,11 @@ public class UserProfileActivity extends AppCompatActivity {
     }
 
     private void setDistanceBar() {
-        distanceSeekBar.setMin(0);
-        distanceSeekBar.setMax(30);
+        int maxRadius = getResources().getInteger(R.integer.max_radius_km) * 2;
+        distanceSeekBar.setMin(1);
+        distanceSeekBar.setMax(maxRadius);
         AppLoader context = (AppLoader) getApplicationContext();
-        distanceSeekBar.setProgress((int) context.getUser().getRadius());
+        distanceSeekBar.setProgress((int) (context.getUser().getRadius() * 2f));
         numpadTextView.setText(getString(R.string.distance_km, (float) distanceSeekBar.getProgress() / 2));
         distanceSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

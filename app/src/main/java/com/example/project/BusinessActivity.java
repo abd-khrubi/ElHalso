@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -229,19 +230,25 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         if(!business.getId().equals(businessID) || !successful)
             return;
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if(business.getLogo() != null && imageName.equals(business.getLogo())){
-                    ImageView image = findViewById(R.id.logoImg);
-                    File imageFile = new File(galleryFolder, imageName);
-                    Picasso.get().load(Uri.fromFile(imageFile)).fit().into(image);
-                    return;
-                }
-                findViewById(R.id.noImagesTxt).setVisibility(View.GONE);
-                adapter.addDownloadedImage(imageName);
+        runOnUiThread(() -> {
+            if(business.getLogo() != null && imageName.equals(business.getLogo())){
+                ImageView image = findViewById(R.id.logoImg);
+                File imageFile = new File(galleryFolder, imageName);
+                image.setOnClickListener(v -> {
+                    viewImageInDefaultViewer(imageFile);
+                });
+                Picasso.get().load(Uri.fromFile(imageFile)).fit().into(image);
+                return;
             }
+            findViewById(R.id.noImagesTxt).setVisibility(View.GONE);
+            adapter.addDownloadedImage(imageName);
         });
+    }
+    private void viewImageInDefaultViewer(File imageFile) {
+        Uri uri =  FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".fileprovider", imageFile);
+        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
     }
 
     @Override

@@ -270,7 +270,6 @@ public class FirebaseHandler {
 
     private double calculateDistance(GeoPoint point1, GeoPoint point2) {
         float[] result = new float[1];
-//        Location.distanceBetween(Math.toRadians(point1.getLatitude()), Math.toRadians(point1.getLongitude()), Math.toRadians(point2.getLatitude()), Math.toRadians(point2.getLongitude()), result);
         Location.distanceBetween(point1.getLatitude(), point1.getLongitude(), point2.getLatitude(), point2.getLongitude(), result);
         return result[0];
     }
@@ -358,16 +357,13 @@ public class FirebaseHandler {
             business.removeReview(review);
             value = FieldValue.arrayRemove(review);
         }
-        firestore.collection(BUSINESS).document(business.getId()).update("reviews", value).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
-                    objectToUpdate = business;
-                    updateDone.postValue(true);
-                }
-                else {
-                    Log.d(TAG, "failed to add review");
-                }
+        firestore.collection(BUSINESS).document(business.getId()).update("reviews", value).addOnCompleteListener(task -> {
+            if(task.isSuccessful()) {
+                objectToUpdate = business;
+                updateDone.postValue(true);
+            }
+            else {
+                Log.d(TAG, "failed to add review");
             }
         });
     }

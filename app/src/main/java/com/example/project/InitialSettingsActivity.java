@@ -27,8 +27,9 @@ public class InitialSettingsActivity extends AppCompatActivity {
         radiusIndicator = (TextView) findViewById(R.id.radius_indicator_textView);
         radiusIndicator.setText(getString(R.string.text_radius_indicator, user.getRadius()));
         sb = findViewById(R.id.distance_seekBar);
-        sb.setMin(0);
-        sb.setMax(30);
+        int max = getResources().getInteger(R.integer.max_radius_km) * 2;
+        sb.setMin(1);
+        sb.setMax(max);
         sb.setProgress((int) (user.getRadius() * 2), true);
         sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override

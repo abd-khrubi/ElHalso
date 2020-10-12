@@ -1,6 +1,7 @@
 package com.example.project.fragments;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -38,6 +39,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 import com.ontbee.legacyforks.cn.pedant.SweetAlert.SweetAlertDialog;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsFragment extends Fragment implements OnMapReadyCallback {
@@ -45,12 +47,13 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap mMap;
     private LocationTracker locationTracker;
     private Circle radiusCircle;
+    private List<Marker> allMarkers = new ArrayList<>();
     private Context context;
     private boolean followLocation = true;
 
     private LocationReceivedCallback onLocationUpdate = locationInfo -> {
         if (mMap != null && isAdded()) {
-            addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
+            updateMarkers();
             User user = ((AppLoader) requireContext().getApplicationContext()).getUser();
             radiusCircle.setVisible(true);
             radiusCircle.setCenter(locationInfo.toLatLng());
@@ -61,9 +64,32 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         }
     };
 
+    private void updateMarkers() {
+        List<Business> businesses = ((MainMapActivity) requireActivity()).filterBusinesses();
+        final List<Marker> tmpMarkers = new ArrayList<>(allMarkers);
+        for (Marker marker : tmpMarkers) {
+            if (!businesses.contains((Business) marker.getTag())) {
+                marker.remove();
+                allMarkers.remove(marker);
+            }
+        }
+        addMarkers(businesses);
+    }
+
+    private boolean hasMarker(Business business) {
+        for (Marker marker : allMarkers) {
+            if (business.equals(marker.getTag())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void addMarkers(final List<Business> businesses) {
-        Log.d(TAG, "addMarkers: Adding " + businesses.size() + " markers");
         for (Business business : businesses) {
+            if (hasMarker(business)) {
+                continue;
+            }
             Log.d(TAG, "addMarkers: " + business);
             LatLng ll = new LatLng(business.getCoordinates().getLatitude(), business.getCoordinates().getLongitude());
             Marker marker = mMap.addMarker(new MarkerOptions()
@@ -77,6 +103,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 intent.putExtra("business", b);
                 startActivity(intent);
             });
+            allMarkers.add(marker);
         }
     }
 
@@ -109,7 +136,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         locationTracker.registerCallback(TAG, onLocationUpdate);
         ((MainMapActivity) requireActivity()).callbacks.put(TAG, () -> {
             if (locationTracker.getLastLocation() != null) {
-                addMarkers(((MainMapActivity) requireActivity()).filterBusinesses());
+                updateMarkers();
             }
         });
     }
@@ -133,11 +160,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 != PackageManager.PERMISSION_GRANTED) {
             return;
         }
+        setupMap();
+    }
+
+    @SuppressLint("MissingPermission")
+    private void setupMap() {
         mMap.setMyLocationEnabled(true);
         radiusCircle = mMap.addCircle(new CircleOptions()
                 .visible(false)
                 .center(new LatLng(0, 0))
-                .fillColor(getContext().getColor(R.color.user_radius_color))
+                .fillColor(requireContext().getColor(R.color.user_radius_color))
                 .strokeWidth(0.1f)
         );
 
@@ -176,8 +208,15 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 } else {
                     locationTracker = ((MainMapActivity) requireActivity()).locationTracker;
                     locationTracker.registerCallback(TAG, onLocationUpdate);
+                    setupMap();
                 }
             }
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateMarkers();
     }
 }
