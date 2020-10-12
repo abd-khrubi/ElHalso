@@ -68,6 +68,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="50dp"
         android:text="@string/favorites"
+        style="@style/text_important"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="parent"

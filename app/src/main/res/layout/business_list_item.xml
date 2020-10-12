@@ -24,8 +24,7 @@
         android:layout_margin="4dp"
         android:text="Business name"
 
-        android:textSize="24sp"
-        android:textStyle="bold"
+        style="@style/text_important"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
 

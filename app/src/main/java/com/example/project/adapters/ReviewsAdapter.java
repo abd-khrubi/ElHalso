@@ -12,16 +12,17 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.project.R;
+import com.example.project.data.Business;
 import com.example.project.data.Review;
 
 import java.util.ArrayList;
 
 public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewHolder> {
 
-    private ArrayList<Review> reviews;
+    private Business business;
 
-    public ReviewsAdapter(ArrayList<Review> reviews) {
-        this.reviews = reviews;
+    public ReviewsAdapter(Business business) {
+        this.business = business;
     }
 
     @NonNull
@@ -29,13 +30,16 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewHo
     public ReviewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         View view = LayoutInflater.from(context).inflate(R.layout.review_item, parent, false);
-        view.findViewById(R.id.reviewTxt).setOnClickListener(v -> {
-            int maxLines = v.getResources().getInteger(R.integer.review_text_default_lines);
-            if(((TextView)v).getMaxLines() == maxLines) {
-                ((TextView)v).setMaxLines(Integer.MAX_VALUE);
-            }
-            else {
-                ((TextView)v).setMaxLines(maxLines);
+        view.findViewById(R.id.reviewTxt).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int maxLines = v.getResources().getInteger(R.integer.review_text_default_lines);
+                if(((TextView)v).getMaxLines() == maxLines) {
+                    ((TextView)v).setMaxLines(Integer.MAX_VALUE);
+                }
+                else {
+                    ((TextView)v).setMaxLines(maxLines);
+                }
             }
         });
         return new ReviewHolder(view);
@@ -43,23 +47,25 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewHo
 
     @Override
     public void onBindViewHolder(@NonNull ReviewHolder holder, int position) {
-        holder.setReview(reviews.get(position));
+        holder.setReview(business.getReviews().get(position));
     }
 
     @Override
     public int getItemCount() {
-        return reviews.size();
+        return business.getReviews().size();
     }
 
     public static class ReviewHolder extends RecyclerView.ViewHolder {
         private TextView usernameTxt;
         private RatingBar ratingBar;
         private TextView reviewTxt;
+        private TextView timeTxt;
         public ReviewHolder(@NonNull View itemView) {
             super(itemView);
             usernameTxt = itemView.findViewById(R.id.userNameTxt);
             ratingBar = itemView.findViewById(R.id.reviewRatingBar);
             reviewTxt = itemView.findViewById(R.id.reviewTxt);
+            timeTxt = itemView.findViewById(R.id.reviewTimeTxt);
         }
 
         public void setReview(Review review) {
@@ -74,6 +80,8 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewHo
                 reviewTxt.setAlpha(1f);
             }
             reviewTxt.setText(reviewText);
+            String[] time = review.getTime().split(";");
+            timeTxt.setText(time[0] + "\n" + time[1]);
         }
     }
 

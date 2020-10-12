@@ -60,10 +60,12 @@ public class GalleryActivity extends AppCompatActivity implements  StartDragList
 
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
         adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, isEditable, this);
-        touchHelper = new ItemTouchHelper(new ImageMoveCallback(adapter));
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMNS_COUNT));
-        touchHelper.attachToRecyclerView(galleryRecyclerView);
+        if(isEditable) {
+            touchHelper = new ItemTouchHelper(new ImageMoveCallback(adapter));
+            touchHelper.attachToRecyclerView(galleryRecyclerView);
+        }
 
         onGalleryUpdate();
         downloadImages();

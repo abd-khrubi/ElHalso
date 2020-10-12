@@ -1,5 +1,6 @@
 package com.example.project;
 
+import android.Manifest;
 import android.app.Application;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -15,6 +16,7 @@ import com.example.project.location.LocationInfo;
 import com.example.project.location.LocationTracker;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
+import com.ontbee.legacyforks.cn.pedant.SweetAlert.SweetAlertDialog;
 
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class AppLoader extends Application {
     private UploadBroadcastReceiver uploadReceiver;
     private LocationTracker locationTracker;
     private LocationInfo locationInfo;
-    private AlertDialog loadingDialog;
+    private SweetAlertDialog loadingDialog;
 
     public static final String UPLOAD_BROADCAST = "business_updated";
 
@@ -102,16 +104,13 @@ public class AppLoader extends Application {
 
     public void showLoadingDialog(Context context, String title, String message) {
         if (loadingDialog != null) {
-            loadingDialog.setMessage(title);
-            loadingDialog.setMessage(message);
+            loadingDialog.setTitleText(title);
+            loadingDialog.setContentText(message);
             return;
         }
-        ProgressBar progressBar = new ProgressBar(context);
-        progressBar.setIndeterminate(true);
-        loadingDialog = new AlertDialog.Builder(context).create();
-        loadingDialog.setTitle(title);
-        loadingDialog.setMessage(message);
-        loadingDialog.setView(progressBar);
+        loadingDialog = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
+        loadingDialog.setTitleText(title);
+        loadingDialog.setContentText(message);
         loadingDialog.setCancelable(false);
         loadingDialog.show();
     }

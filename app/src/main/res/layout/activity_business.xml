@@ -33,7 +33,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/businessToolbar"
-            app:srcCompat="@mipmap/ic_launcher" />
+            android:src="@drawable/elhalso_logo_business" />
 
         <TextView
             android:id="@+id/descriptionTxt"
@@ -54,9 +54,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
+            style="@style/text_link"
             android:onClick="showReviews"
             android:text="reviews"
-            android:textColor="@color/colorPrimaryDark"
             app:layout_constraintStart_toEndOf="@+id/ratingBar"
             app:layout_constraintTop_toBottomOf="@+id/ratingBar" />
 
@@ -75,19 +75,19 @@
             android:id="@+id/galleryRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="15dp"
             android:layout_marginEnd="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/galleryTxt" />
 
         <TextView
             android:id="@+id/galleryTxt"
+            style="@style/text_link"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:onClick="showGallery"
             android:text="Gallery"
-            android:textColor="@color/colorPrimaryDark"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/reviewsTxt" />
@@ -96,9 +96,7 @@
             android:id="@+id/noImagesTxt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="30dp"
-            android:layout_marginEnd="0dp"
+            android:layout_marginTop="15dp"
             android:alpha="0.7"
             android:text="(No images yet)"
             app:layout_constraintEnd_toEndOf="parent"
@@ -110,6 +108,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            style="@style/text_important"
             android:text="Category:"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -119,12 +118,12 @@
             android:id="@+id/waze_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="20dp"
-            android:layout_marginBottom="20dp"
             android:background="@drawable/ic_icons8_waze"
             android:onClick="onWazeClick"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/galleryRecyclerView" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

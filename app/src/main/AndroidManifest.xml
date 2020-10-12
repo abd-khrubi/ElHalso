@@ -46,7 +46,7 @@
         <activity android:name=".GalleryActivity" />
         <activity android:name=".EditBusinessActivity" />
         <activity android:name=".BusinessActivity" />
-        <activity android:name=".EmailLoginActivity" />
+        <activity android:name=".SignupActivity" />
         <activity android:name=".LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

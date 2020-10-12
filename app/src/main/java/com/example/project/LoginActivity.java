@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
@@ -13,10 +12,13 @@ import android.os.Bundle;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.widget.ImageButton;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.example.project.data.Business;
@@ -34,7 +36,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -67,15 +68,76 @@ public class LoginActivity extends AppCompatActivity {
         setupFacebookLogin();
         setupGoogleLogin();
         isBusinessLogin = false;
-
-        setSupportActionBar((Toolbar) findViewById(R.id.loginToolbar));
-        getSupportActionBar().setTitle(getString(R.string.app_name));
-        getSupportActionBar().setSubtitle("Login");
     }
 
-    public void emailLogin(View v){
-        Intent intent = new Intent(this, EmailLoginActivity.class);
-        startActivityForResult(intent, RC_EMAIL_SIGN_IN);
+    public void signinBtn(View view) {
+        String email = ((EditText)findViewById(R.id.emailTxt)).getText().toString();
+        String pass = ((EditText)findViewById(R.id.passTxt)).getText().toString();
+
+        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches() || pass.length() < 6){
+            showMessage("Invalid sign in details");
+            return;
+        }
+
+        final FirebaseAuth mFirebaseAuth = FirebaseAuth.getInstance();
+
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Signing in", "Connecting to " + getString(R.string.app_name) + "...");
+        mFirebaseAuth.signInWithEmailAndPassword(email, pass)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                        if(task.isSuccessful()) {
+                            if(!task.getResult().getUser().isEmailVerified()){
+                                showMessage("Please verify your email first!");
+                                return;
+                            }
+                            Log.d(TAG, "Authentication success");
+                            successfulLogin();
+                        } else {
+                            Log.d(TAG, "Authentication failed, ", task.getException());
+                            showMessage("Authentication failed!");
+                        }
+                    }
+                });
+    }
+
+    public void resetPassword(View view) {
+        String email = ((EditText)findViewById(R.id.emailTxt)).getText().toString();
+        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+            showMessage("Invalid Email address");
+            return;
+        }
+        ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Reset Password", "Sending verification email...");
+        FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        ((AppLoader)getApplicationContext()).dismissLoadingDialog();
+                        if (task.isSuccessful()) {
+                            showMessage("Email sent!");
+                            Log.d(TAG, "Email sent.");
+                        }
+                        else {
+                            showMessage("Failed to send email");
+                            Log.d(TAG, "Failed to send email. " + task.getException().toString());
+                        }
+                    }
+                });
+    }
+
+    public void goSignupBtn(View view) {
+        startActivity(new Intent(this, SignupActivity.class));
+    }
+
+    public void roundGoogleBtn(View view) {
+        ((AppLoader)getApplicationContext()).showLoadingDialog(LoginActivity.this, "Authenticating", "Connecting with Google...");
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
+    }
+
+    public void roundFbBtn(View view) {
+        ((LoginButton) findViewById(R.id.fbLoginBtn)).performClick();
     }
 
     public void showTypesDialog(View view){
@@ -87,8 +149,8 @@ public class LoginActivity extends AppCompatActivity {
 
         final AlertDialog alertD = alertDialogBuilder.create();
 
-        ImageButton regularBtn = (ImageButton) promptView.findViewById(R.id.regularImgBtn);
-        ImageButton businessBtn = (ImageButton) promptView.findViewById(R.id.businessImgBtn);
+        ImageView regularBtn = (ImageView) promptView.findViewById(R.id.regularImgBtn);
+        ImageView businessBtn = (ImageView) promptView.findViewById(R.id.businessImgBtn);
 
         regularBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,25 +174,25 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
-        if(fUser != null){
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        if(fUser != null && sp.getBoolean("rememberLogin", false)){
             if(!fUser.isEmailVerified()){
                 FirebaseAuth.getInstance().signOut();
                 return;
             }
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
             if(sp.contains("last_user_id") && fUser.getUid().equals(sp.getString("last_user_id", ""))){
                 isBusinessLogin = sp.getBoolean("is_business_login", false);
             }
+            ((CheckBox)findViewById(R.id.rememberBox)).setChecked(true);
             successfulLogin();
         }
     }
 
     private void updateLoginType(boolean isBusiness){
-        Log.d(TAG, "updateLoginType: " + isBusiness);
         if(this.isBusinessLogin == isBusiness)
             return;
 
-        ImageButton logoImg = (ImageButton) findViewById(R.id.logoImgBtn);
+        ImageView logoImg = (ImageView) findViewById(R.id.logoImgBtn);
         this.isBusinessLogin = isBusiness;
         if(isBusiness){
             logoImg.setImageResource(BUSINESS_LOGO_ID);
@@ -146,15 +208,6 @@ public class LoginActivity extends AppCompatActivity {
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-        SignInButton googleSigninBtn = (SignInButton) findViewById(R.id.googleLoginBtn);
-        googleSigninBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((AppLoader)getApplicationContext()).showLoadingDialog(LoginActivity.this, "Authenticating", "Connecting with Google...");
-                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                startActivityForResult(signInIntent, RC_GOOGLE_SIGN_IN);
-            }
-        });
     }
 
     private void setupFacebookLogin() {
@@ -234,10 +287,6 @@ public class LoginActivity extends AppCompatActivity {
                 showMessage("Error connecting with " + getString(R.string.app_name));
             }
         }
-        else if(requestCode == RC_EMAIL_SIGN_IN && resultCode == RESULT_OK){
-            Log.d(TAG, "signed in with email");
-            successfulLogin();
-        }
         else if(resultCode != RESULT_OK){
             ((AppLoader)getApplicationContext()).dismissLoadingDialog();
         }
@@ -272,6 +321,7 @@ public class LoginActivity extends AppCompatActivity {
         SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
         sp.edit().putString("last_user_id", fUser.getUid())
                 .putBoolean("is_business_login", isBusinessLogin)
+                .putBoolean("rememberLogin", ((CheckBox)findViewById(R.id.rememberBox)).isChecked())
                 .apply();
         ((AppLoader)getApplicationContext()).showLoadingDialog(this, "Syncing", "Getting user info...");
         firebaseHandler.updateOrCreateFirebaseUser(user);
