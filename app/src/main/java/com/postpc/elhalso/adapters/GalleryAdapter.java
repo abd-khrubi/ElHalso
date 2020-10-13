@@ -19,6 +19,7 @@ import com.postpc.elhalso.ImageHolder;
 import com.postpc.elhalso.callbacks.ImageMoveCallback;
 import com.postpc.elhalso.R;
 import com.postpc.elhalso.callbacks.StartDragListener;
+import com.postpc.elhalso.data.Business;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -29,7 +30,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     private static final float SELECTED_ALPHA = 0.7f;
 
     private Context context;
-    private ArrayList<String> gallery;
+    private Business business;
+//    private ArrayList<String> gallery;
     private ArrayList<String> downloadedGallery;
     private boolean selecting;
     private boolean isEditMode;
@@ -41,9 +43,9 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     private static final String TAG = "GalleryAdapter";
 
-    public GalleryAdapter(Context context, ArrayList<String> gallery, File galleryFolder, boolean isEditMode, StartDragListener startDragListener){
+    public GalleryAdapter(Context context, Business business, File galleryFolder, boolean isEditMode, StartDragListener startDragListener){
         this.context = context;
-        this.gallery = gallery;
+        this.business = business;
         this.galleryFolder = galleryFolder;
         this.selectedImages = new ArrayList<>();
         this.selectedImagesSize = new MutableLiveData<>();
@@ -66,7 +68,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
         if(!downloadedGallery.contains(imageName))
             downloadedGallery.add(imageName);
         Log.d(TAG, "adding image " + imageName);
-        notifyItemChanged(gallery.indexOf(imageName));
+        notifyItemChanged(business.getGallery().indexOf(imageName));
     }
 
     public ArrayList<String> getSelectedImages() {
@@ -98,27 +100,27 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     @Override
     public synchronized void onBindViewHolder(@NonNull final ImageHolder holder, final int position) {
-        if(position >= gallery.size())
+        if(position >= business.getGallery().size())
             return;
 
         holder.selectedBox.setVisibility(selecting && isEditMode ? View.VISIBLE : View.GONE);
 
-        if(!downloadedGallery.contains(gallery.get(position))) {
+        if(!downloadedGallery.contains(business.getGallery().get(position))) {
             holder.imageView.setImageBitmap(null);
             holder.imageProgress.setVisibility(View.VISIBLE);
             return;
         }
 
         holder.imageProgress.setVisibility(View.GONE);
-        holder.selectedBox.setChecked(selectedImages.contains(gallery.get(position)));
+        holder.selectedBox.setChecked(selectedImages.contains(business.getGallery().get(position)));
 
-        File file = new File(galleryFolder, gallery.get(position));
+        File file = new File(galleryFolder, business.getGallery().get(position));
         Picasso.get().load(Uri.fromFile(file)).fit().into(holder.imageView);
 
         View.OnClickListener clickListener = v -> {
             if(selecting) {
-                if(selectedImages.contains(gallery.get(position))){
-                    selectedImages.remove(gallery.get(position));
+                if(selectedImages.contains(business.getGallery().get(position))){
+                    selectedImages.remove(business.getGallery().get(position));
                     if(selectedImages.isEmpty()){
                         triggerSelecting();
                         return;
@@ -126,7 +128,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                     selectedImagesSize.postValue(selectedImages.size());
                 }
                 else {
-                    selectedImages.add(gallery.get(position));
+                    selectedImages.add(business.getGallery().get(position));
                     selectedImagesSize.postValue(selectedImages.size());
                 }
                 notifyItemChanged(position);
@@ -146,7 +148,7 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
                 startDragListener.requestDrag(holder);
                 return true;
             }
-            selectedImages.add(gallery.get(position));
+            selectedImages.add(business.getGallery().get(position));
             selectedImagesSize.postValue(selectedImages.size());
             triggerSelecting();
             return true;
@@ -154,8 +156,8 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
     }
 
     private void viewImageInDefaultViewer(int position) {
-        Log.d(TAG, "viewing image " + gallery.get(position) + " at adapter " + (position + 1));
-        Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, gallery.get(position)));
+        Log.d(TAG, "viewing image " + business.getGallery().get(position) + " at adapter " + (position + 1));
+        Uri uri =  FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + ".fileprovider", new File(galleryFolder, business.getGallery().get(position)));
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(intent);
@@ -163,15 +165,15 @@ public class GalleryAdapter extends RecyclerView.Adapter<ImageHolder> implements
 
     @Override
     public int getItemCount() {
-        return gallery.size();
+        return business.getGallery().size();
     }
 
     @Override
     public void onImageMoved(int fromPosition, int toPosition) {
         if(fromPosition != toPosition)
             orderChanged = true;
-        String toSwap = gallery.remove(fromPosition);
-        gallery.add(toPosition, toSwap);
+        String toSwap = business.getGallery().remove(fromPosition);
+        business.getGallery().add(toPosition, toSwap);
         notifyItemMoved(fromPosition, toPosition);
     }
 

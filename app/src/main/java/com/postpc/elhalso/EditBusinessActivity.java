@@ -23,6 +23,8 @@ import com.postpc.elhalso.utils.ImageUploader;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class EditBusinessActivity extends AppCompatActivity {
 
@@ -136,6 +138,7 @@ public class EditBusinessActivity extends AppCompatActivity {
 
         nameTxt.setText(business.getName() == null ? "" : business.getName());
         descriptionTxt.setText(business.getDescription() == null ? "" : business.getDescription());
+        categorySpinner.setSelection(Arrays.asList(getResources().getStringArray(R.array.categories)).indexOf(business.getCategory()));
         if(business.getLogo() != null) {
             File logo = new File(galleryFolder, business.getLogo());
             Picasso.get().load(Uri.fromFile(logo)).fit().into(logoImg);
@@ -176,7 +179,7 @@ public class EditBusinessActivity extends AppCompatActivity {
     public void changeLogoButton(View view) {
         Intent intent = new Intent();
         intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
         startActivityForResult(Intent.createChooser(intent,"Select Picture"), RC_CHANGE_LOGO);
     }
 
@@ -216,6 +219,9 @@ public class EditBusinessActivity extends AppCompatActivity {
                 newLogoUri = data.getClipData().getItemAt(0).getUri();
             } else if (data.getData() != null) {
                 newLogoUri = data.getData();
+            }
+            if(newLogoUri != null) {
+                getContentResolver().takePersistableUriPermission(newLogoUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
             Picasso.get().load(newLogoUri).fit().into(logoImg);
         }

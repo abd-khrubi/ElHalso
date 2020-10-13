@@ -38,6 +38,7 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
     private Marker currentChoice;
     private LocationTracker locationTracker;
     private Business business;
+    private boolean firstLocation;
 
 
     @Override
@@ -51,6 +52,7 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
         getSupportActionBar().setTitle(business.getName() != null ? business.getName() : "<No Name>");
         getSupportActionBar().setSubtitle("Set Location");
 
+        firstLocation = false;
         locationTracker = new LocationTracker(this);
         locationTracker.registerCallback(TAG, this);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -135,7 +137,8 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
      */
     @Override
     public void onLocationReceived(LocationInfo location) {
-        if (currentChoice == null) {
+        if (currentChoice == null && !firstLocation) {
+            firstLocation = true;
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     location.toLatLng(),
                     13

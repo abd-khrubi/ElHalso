@@ -5,10 +5,19 @@
     <string name="google_oauth2_client_id">372906604429-o7bs1okebd150j3rekbei9anq8leehjl.apps.googleusercontent.com</string>
     <string name="title_activity_initial_distance_slider">Initial_distance_slider</string>
     <string-array name="categories">
-        <!--        first should be misc (as the default category)-->
         <item>Misc</item>
+        <item>Fast Food</item>
+        <item>Restaurant</item>
+        <item>Store</item>
+        <item>Office</item>
+        <item>Grocery Store</item>
+        <item>Furniture</item>
+        <item>Club</item>
+        <item>Electronics</item>
+        <item>Phone Repair</item>
+        <item>Gas Station</item>
+        <item>Fashion Store</item>
         <item>Barber</item>
-        <item>Grocery</item>
     </string-array>
 
     <!-- Preference Titles -->

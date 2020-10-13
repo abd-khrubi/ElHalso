@@ -63,7 +63,7 @@ public class GalleryActivity extends AppCompatActivity implements StartDragListe
         findViewById(R.id.noGalleryTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
 
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
-        adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, isEditable, this);
+        adapter = new GalleryAdapter(this, business, galleryFolder, isEditable, this);
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new GridLayoutManager(this, COLUMNS_COUNT));
         if(isEditable) {

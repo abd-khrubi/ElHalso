@@ -56,7 +56,7 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         fillInBusinessDetails();
 
         galleryRecyclerView = (RecyclerView) findViewById(R.id.galleryRecyclerView);
-        adapter = new GalleryAdapter(this, business.getGallery(), galleryFolder, false, null);
+        adapter = new GalleryAdapter(this, business, galleryFolder, false, null);
         galleryRecyclerView.setAdapter(adapter);
         galleryRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
 
