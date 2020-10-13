@@ -62,7 +62,7 @@ public class EditBusinessActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.editBusinessToolbar));
         if(!startedHere)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(business.getName());
+        getSupportActionBar().setTitle(business.getName() != null ? business.getName() : "<No Name>");
         getSupportActionBar().setSubtitle("Edit");
     }
 

@@ -123,6 +123,7 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
     public void onDestroy() {
         super.onDestroy();
         locationTracker.stopTracking();
+        callbacks.clear();
     }
 
     public List<Business> filterBusinesses() {
