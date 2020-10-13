@@ -1,4 +1,4 @@
-package com.postpc.elhalso;
+package com.postpc.elhalso.utils;
 
 import android.util.Log;
 
@@ -8,7 +8,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import java.io.File;
 import java.util.ArrayList;
 
-class ImageDownloader {
+public class ImageDownloader {
     public interface DownloadCallback{
         void onImageDownloaded(String businessID, String imageName, boolean successful);
     }

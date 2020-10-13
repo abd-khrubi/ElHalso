@@ -10,7 +10,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.postpc.elhalso.data.Business;
 import com.postpc.elhalso.data.User;
-import com.postpc.elhalso.location.LocationInfo;
+import com.postpc.elhalso.data.LocationInfo;
 import com.postpc.elhalso.location.LocationTracker;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
@@ -26,8 +26,6 @@ public class AppLoader extends Application {
     private User user;
     private Business business;
     private UploadBroadcastReceiver uploadReceiver;
-    private LocationTracker locationTracker;
-    private LocationInfo locationInfo;
     private SweetAlertDialog loadingDialog;
 
     public static final String UPLOAD_BROADCAST = "business_updated";
@@ -57,10 +55,6 @@ public class AppLoader extends Application {
 
     public UploadBroadcastReceiver getUploadReceiver() {
         return uploadReceiver;
-    }
-
-    public LocationTracker getLocationTracker() {
-        return locationTracker;
     }
 
     public void logout(final Context context) {

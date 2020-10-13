@@ -120,7 +120,7 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         else {
                             showMessage("Failed to send email");
-                            Log.d(TAG, "Failed to send email. " + task.getException().toString());
+                            Log.d(TAG, "Failed to send email. " + task.getException());
                         }
                     }
                 });
@@ -137,7 +137,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void roundFbBtn(View view) {
-        ((LoginButton) findViewById(R.id.fbLoginBtn)).performClick();
+        findViewById(R.id.fbLoginBtn).callOnClick();
     }
 
     public void showTypesDialog(View view){
@@ -211,8 +211,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void setupFacebookLogin() {
-        FacebookSdk.sdkInitialize(getApplicationContext());
-
         mCallerbackManager = CallbackManager.Factory.create();
         final LoginButton fbLoginBtn = (LoginButton) findViewById(R.id.fbLoginBtn);
         fbLoginBtn.setOnClickListener(new View.OnClickListener() {

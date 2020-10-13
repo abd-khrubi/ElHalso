@@ -6,6 +6,9 @@ import android.os.Looper;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * Utility class to manage multi-threading operations
+ */
 public class ThreadingHelper {
     private static Executor bgExecutor = Executors.newCachedThreadPool();
 

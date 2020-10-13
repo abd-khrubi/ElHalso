@@ -7,10 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.postpc.elhalso.callbacks.BusinessListReadyCallback;
-import com.postpc.elhalso.data.Business;
-import com.postpc.elhalso.data.Review;
-import com.postpc.elhalso.data.User;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -22,6 +18,10 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
+import com.postpc.elhalso.callbacks.BusinessListReadyCallback;
+import com.postpc.elhalso.data.Business;
+import com.postpc.elhalso.data.Review;
+import com.postpc.elhalso.data.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,14 +45,14 @@ public class FirebaseHandler {
         storage = FirebaseStorage.getInstance();
     }
 
-    public static FirebaseHandler getInstance(){
-        if(firebaseHandler == null)
+    public static FirebaseHandler getInstance() {
+        if (firebaseHandler == null)
             firebaseHandler = new FirebaseHandler();
 
         return firebaseHandler;
     }
 
-    public LiveData<Boolean> getUpdate(){
+    public LiveData<Boolean> getUpdate() {
         updateDone.setValue(false);
         objectToUpdate = null;
         return updateDone;
@@ -66,7 +66,7 @@ public class FirebaseHandler {
         Log.d(TAG, "starting");
 
         // user starting new business
-        if(user.getBusinessID() == null) {
+        if (user.getBusinessID() == null) {
             DocumentReference docR = firestore.collection(BUSINESS).document();
             final Business business = new Business(docR.getId());
             // adding business
@@ -74,13 +74,14 @@ public class FirebaseHandler {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     // adding businessID to user
-                    firestore.collection(USERS).document(user.getId()).update("businessID", business.getId()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    firestore.collection(USERS).document(user.getId()).update("businessID",
+                            business.getId()).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             user.setBusinessID(business.getId());
                             objectToUpdate = business;
                             updateDone.postValue(true);
-                            if(!task.isSuccessful()){
+                            if (!task.isSuccessful()) {
                                 Log.d(TAG, "failed: " + task.getException().toString());
                             }
                         }
@@ -94,12 +95,11 @@ public class FirebaseHandler {
         firestore.collection(BUSINESS).document(user.getBusinessID()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     Business business = task.getResult().toObject(Business.class);
                     objectToUpdate = business;
                     updateDone.postValue(true);
-                }
-                else {
+                } else {
                     Log.d(TAG, "Fetching user failed.");
                 }
             }
@@ -110,9 +110,9 @@ public class FirebaseHandler {
         firestore.collection(USERS).document(user.getId()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     DocumentSnapshot snap = task.getResult();
-                    if(snap != null && snap.exists()) {
+                    if (snap != null && snap.exists()) {
                         User userFetched = snap.toObject(User.class);
                         user.setBusinessID(userFetched.getBusinessID());
                         user.setFavorites(userFetched.getFavorites());
@@ -120,22 +120,19 @@ public class FirebaseHandler {
                         user.setFirstLogin(userFetched.isFirstLogin());
                         objectToUpdate = user;
                         updateDone.postValue(true);
-                    }
-                    else {
+                    } else {
                         firestore.collection(USERS).document(user.getId()).set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                if(task.isSuccessful()) {
+                                if (task.isSuccessful()) {
                                     objectToUpdate = user;
                                     updateDone.postValue(true);
-                                }
-                                else
+                                } else
                                     Log.d(TAG, "failed to create user");
                             }
                         });
                     }
-                }
-                else {
+                } else {
                     Log.d(TAG, "failed to get user");
                 }
             }
@@ -165,12 +162,11 @@ public class FirebaseHandler {
         firestore.collection(USERS).document(user.getId()).update("radius", user.getRadius()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     Log.d(TAG, "successfully updated user's radius");
                     objectToUpdate = user; // probably no need
                     updateDone.postValue(true);
-                }
-                else {
+                } else {
                     Log.d(TAG, "failed to update user's radius");
                 }
             }
@@ -181,12 +177,11 @@ public class FirebaseHandler {
         firestore.collection(BUSINESS).document(business.getId()).update("coordinates", business.getCoordinates()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     Log.d(TAG, "successfully updated business's coordinates");
                     objectToUpdate = business;
                     updateDone.postValue(true);
-                }
-                else {
+                } else {
                     Log.d(TAG, "failed to update business's coordinates");
                 }
             }
@@ -206,62 +201,44 @@ public class FirebaseHandler {
                 });
     }
 
-    public void fetchCategoryBusinesses(String category){
+    public void fetchCategoryBusinesses(String category) {
         firestore.collection(BUSINESS).whereEqualTo("category", category).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     Log.d(TAG, "successfully queried " + task.getResult().size() + " businesses");
                     ArrayList<Business> businesses = new ArrayList<>();
-                    for(QueryDocumentSnapshot doc : task.getResult()){
-                        if(doc.getString("name") != null && !doc.getString("name").equals(""))
+                    for (QueryDocumentSnapshot doc : task.getResult()) {
+                        if (doc.getString("name") != null && !doc.getString("name").equals(""))
                             businesses.add(doc.toObject(Business.class));
                     }
                     objectToUpdate = businesses;
                     updateDone.postValue(true);
-                }
-                else {
+                } else {
                     Log.d(TAG, "failed to query");
                 }
             }
         });
     }
 
-    public void fetchNearbyBusinesses(final GeoPoint myLocation, final double distance){
-//        final GeoPoint orig = calculateGeopointAtDistanceFrom(myLocation, 0, 0);
-//        GeoPoint north = calculateGeopointAtDistanceFrom(orig, distance, 0);
-//        GeoPoint south = calculateGeopointAtDistanceFrom(orig, distance, 180);
-//        GeoPoint east = calculateGeopointAtDistanceFrom(orig, distance, 90);
-//        GeoPoint west = calculateGeopointAtDistanceFrom(orig, distance, 270);
-//
-//        Log.d(TAG, "MyLoc:" + orig.toString());
-//        Log.d(TAG, "West:" + north.toString());
-//        Log.d(TAG, "East:" + north.toString());
-//        Log.d(TAG, "South:" + south.toString());
-//        Log.d(TAG, "North:" + north.toString());
-
+    public void fetchNearbyBusinesses(final GeoPoint myLocation, final double distance) {
 
         firestore.collection(BUSINESS).whereGreaterThanOrEqualTo("name", "")
-//                .whereGreaterThanOrEqualTo("coordinates", west)
-//                .whereLessThanOrEqualTo("coordinates", east)
-//                .whereGreaterThanOrEqualTo("coordinates", south)
-//                .whereLessThanOrEqualTo("coordinates", north)
                 .get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     Log.d(TAG, "successfully queried " + task.getResult().size() + " businesses");
                     ArrayList<Business> businesses = new ArrayList<>();
-                    for(QueryDocumentSnapshot doc : task.getResult()){
+                    for (QueryDocumentSnapshot doc : task.getResult()) {
                         GeoPoint point = doc.getGeoPoint("coordinates");
-                        if(point != null && calculateDistance(myLocation, point) <= distance*1000) {
+                        if (point != null && calculateDistance(myLocation, point) <= distance * 1000) {
                             businesses.add(doc.toObject(Business.class));
                         }
                     }
                     objectToUpdate = businesses;
                     updateDone.postValue(true);
-                }
-                else {
+                } else {
                     Log.d(TAG, "failed to query");
                 }
             }
@@ -298,30 +275,28 @@ public class FirebaseHandler {
         return new GeoPoint(Math.toDegrees(latitudeResult), Math.toDegrees(longitudeResult));
     }
 
-    public void updateBusiness(final Business newBusiness){
+    public void updateBusiness(final Business newBusiness) {
         firestore.collection(BUSINESS).document(newBusiness.getId()).set(newBusiness).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     objectToUpdate = newBusiness;
                     updateDone.postValue(true);
-                }
-                else {
+                } else {
                     Log.d(TAG, "failed to update business.");
                 }
             }
         });
     }
 
-    public void deleteImageForBusiness(final Business business, final String image){
+    public void deleteImageForBusiness(final Business business, final String image) {
         business.removeImage(image);
         storage.getReference().child(business.getId() + "/" + image).delete().continueWithTask(new Continuation<Void, Task<Void>>() {
             @Override
             public Task<Void> then(@NonNull Task<Void> task) throws Exception {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     Log.d(TAG, "Image removed from business storage");
-                }
-                else {
+                } else {
                     Log.d(TAG, "Image failed to be removed from business storage");
                 }
                 return firestore.collection(BUSINESS).document(business.getId()).update("gallery", FieldValue.arrayRemove(image));
@@ -329,10 +304,9 @@ public class FirebaseHandler {
         }).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     Log.d(TAG, "Image removed from business firestore");
-                }
-                else {
+                } else {
                     Log.d(TAG, "Image failed to be removed from business firestore");
                 }
             }
@@ -343,26 +317,24 @@ public class FirebaseHandler {
         updateBusinessReviews(business, review, true);
     }
 
-    public void removeReview(Business business, Review review){
+    public void removeReview(Business business, Review review) {
         updateBusinessReviews(business, review, false);
     }
 
-    private void updateBusinessReviews(final Business business, Review review, boolean isAdding){
+    private void updateBusinessReviews(final Business business, Review review, boolean isAdding) {
         FieldValue value;
-        if(isAdding) {
+        if (isAdding) {
             business.addReview(review);
             value = FieldValue.arrayUnion(review);
-        }
-        else {
+        } else {
             business.removeReview(review);
             value = FieldValue.arrayRemove(review);
         }
         firestore.collection(BUSINESS).document(business.getId()).update("reviews", value).addOnCompleteListener(task -> {
-            if(task.isSuccessful()) {
+            if (task.isSuccessful()) {
                 objectToUpdate = business;
                 updateDone.postValue(true);
-            }
-            else {
+            } else {
                 Log.d(TAG, "failed to add review");
             }
         });
@@ -378,21 +350,19 @@ public class FirebaseHandler {
 
     private void updateUserFavorites(User user, Business business, boolean isAdding) {
         FieldValue value;
-        if(isAdding) {
+        if (isAdding) {
             user.addFavoriteBusiness(business);
             value = FieldValue.arrayUnion(business.getId());
-        }
-        else {
+        } else {
             user.removeFavoriteBusiness(business);
             value = FieldValue.arrayRemove(business.getId());
         }
         firestore.collection(USERS).document(user.getId()).update("favorites", value).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     updateDone.postValue(true);
-                }
-                else {
+                } else {
                     Log.d(TAG, "adding favorite failed");
                 }
             }
@@ -405,10 +375,9 @@ public class FirebaseHandler {
                 "category", business.getCategory()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     Log.d(TAG, "business updated edits successfully");
-                }
-                else {
+                } else {
                     Log.d(TAG, "failed to update business edits");
                 }
             }
@@ -418,15 +387,14 @@ public class FirebaseHandler {
     public void updateGalleryForBusiness(Business business) {
         firestore.collection(BUSINESS).document(business.getId()).update("gallery", business.getGallery())
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()) {
-                    Log.d(TAG, "gallery update successfully");
-                }
-                else {
-                    Log.d(TAG, "failed to update gallery");
-                }
-            }
-        });
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "gallery update successfully");
+                        } else {
+                            Log.d(TAG, "failed to update gallery");
+                        }
+                    }
+                });
     }
 }

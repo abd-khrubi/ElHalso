@@ -21,12 +21,16 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.postpc.elhalso.adapters.GalleryAdapter;
+import com.postpc.elhalso.callbacks.ImageMoveCallback;
+import com.postpc.elhalso.callbacks.StartDragListener;
 import com.postpc.elhalso.data.Business;
+import com.postpc.elhalso.utils.ImageDownloader;
+import com.postpc.elhalso.utils.ImageUploader;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class GalleryActivity extends AppCompatActivity implements  StartDragListener,
+public class GalleryActivity extends AppCompatActivity implements StartDragListener,
         ImageDownloader.DownloadCallback{
 
     private boolean isEditable;

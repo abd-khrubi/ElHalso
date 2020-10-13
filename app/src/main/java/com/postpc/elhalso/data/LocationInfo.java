@@ -1,4 +1,4 @@
-package com.postpc.elhalso.location;
+package com.postpc.elhalso.data;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.GeoPoint;

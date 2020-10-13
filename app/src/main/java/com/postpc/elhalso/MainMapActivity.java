@@ -16,7 +16,7 @@ import com.postpc.elhalso.data.Business;
 import com.postpc.elhalso.data.User;
 import com.postpc.elhalso.fragments.CategoriesFragment;
 import com.postpc.elhalso.fragments.MapsFragment;
-import com.postpc.elhalso.location.LocationInfo;
+import com.postpc.elhalso.data.LocationInfo;
 import com.postpc.elhalso.location.LocationTracker;
 import com.postpc.elhalso.utils.Utils;
 import com.google.android.gms.maps.model.LatLng;
@@ -126,6 +126,9 @@ public class MainMapActivity extends AppCompatActivity implements BusinessListRe
         callbacks.clear();
     }
 
+    /**
+     * Returns a filtered list of the available business with a certain radius
+     */
     public List<Business> filterBusinesses() {
         List<Business> filtered = new ArrayList<>();
         User user = ((AppLoader) getApplicationContext()).getUser();

@@ -39,5 +39,7 @@
     <string name="title_activity_business_location">Map</string>
     <string name="set_location_manually">Set Location Coordinates</string>
     <string name="set_business_location">Set</string>
-    <string name="category_marker_text">Category: %s</string>
+    <string name="category_text">Category: %s</string>
+
+    <string name="reviews_count">(%d reviews)</string>
 </resources>

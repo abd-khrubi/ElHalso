@@ -16,9 +16,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.postpc.elhalso.BuildConfig;
 import com.postpc.elhalso.ImageHolder;
-import com.postpc.elhalso.ImageMoveCallback;
+import com.postpc.elhalso.callbacks.ImageMoveCallback;
 import com.postpc.elhalso.R;
-import com.postpc.elhalso.StartDragListener;
+import com.postpc.elhalso.callbacks.StartDragListener;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;

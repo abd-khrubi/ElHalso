@@ -13,6 +13,9 @@ import com.postpc.elhalso.data.Business;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
+/**
+ * Adapter for the custom info window for the map's markers
+ */
 public class MapMarkerAdapter implements GoogleMap.InfoWindowAdapter {
     private static final String TAG = "MapMarkerAdapter";
 
@@ -49,7 +52,7 @@ public class MapMarkerAdapter implements GoogleMap.InfoWindowAdapter {
 
         title.setText(business.getName());
         desc.setText(business.getDescription());
-        cat.setText(view.getResources().getString(R.string.category_marker_text, business.getCategory()));
+        cat.setText(view.getResources().getString(R.string.category_text, business.getCategory()));
 
         int starsAmt = (int) (business.getReviewsScore() * 2);
 

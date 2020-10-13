@@ -1,8 +1,10 @@
-package com.postpc.elhalso;
+package com.postpc.elhalso.callbacks;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.postpc.elhalso.ImageHolder;
 
 public class ImageMoveCallback extends ItemTouchHelper.Callback {
 

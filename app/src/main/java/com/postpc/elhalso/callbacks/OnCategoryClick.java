@@ -1,5 +1,8 @@
 package com.postpc.elhalso.callbacks;
 
-public interface OnCategoryClick  {
-    public void onCategoryClick(String category);
+/**
+ * A callback for clicking on a category event
+ */
+public interface OnCategoryClick {
+    void onCategoryClick(String category);
 }

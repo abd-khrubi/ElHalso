@@ -20,10 +20,15 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.SettingsClient;
+import com.postpc.elhalso.callbacks.LocationReceivedCallback;
+import com.postpc.elhalso.data.LocationInfo;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Handles the logic of tracking the user's location
+ */
 public class LocationTracker extends LocationCallback {
 
     private static final String TAG = "LocationTracker";

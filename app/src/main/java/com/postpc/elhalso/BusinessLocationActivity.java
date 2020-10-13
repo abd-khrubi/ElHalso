@@ -16,10 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 
-import com.postpc.elhalso.data.Business;
-import com.postpc.elhalso.location.LocationInfo;
-import com.postpc.elhalso.location.LocationReceivedCallback;
-import com.postpc.elhalso.location.LocationTracker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -28,6 +24,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.firestore.GeoPoint;
+import com.postpc.elhalso.callbacks.LocationReceivedCallback;
+import com.postpc.elhalso.data.Business;
+import com.postpc.elhalso.data.LocationInfo;
+import com.postpc.elhalso.location.LocationTracker;
 
 public class BusinessLocationActivity extends AppCompatActivity implements OnMapReadyCallback, LocationReceivedCallback {
 
@@ -45,7 +45,7 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_business_location);
 
-        business = ((AppLoader)getApplicationContext()).getBusiness();
+        business = ((AppLoader) getApplicationContext()).getBusiness();
         setSupportActionBar((Toolbar) findViewById(R.id.businessLocationToolbar));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(business.getName() != null ? business.getName() : "<No Name>");
@@ -70,7 +70,7 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
             }
             findViewById(R.id.confirmLocationBtn).setVisibility(View.VISIBLE);
         });
-        if(business.getCoordinates() != null) {
+        if (business.getCoordinates() != null) {
             LatLng pos = new LatLng(business.getCoordinates().getLatitude(), business.getCoordinates().getLongitude());
             currentChoice = mMap.addMarker(new MarkerOptions().position(pos));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(pos, 13));
@@ -99,10 +99,10 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
         promptView.findViewById(R.id.viewBtn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String latitude = ((EditText)promptView.findViewById(R.id.latitudeTxt)).getText().toString();
-                String longitude = ((EditText)promptView.findViewById(R.id.longitudeTxt)).getText().toString();
+                String latitude = ((EditText) promptView.findViewById(R.id.latitudeTxt)).getText().toString();
+                String longitude = ((EditText) promptView.findViewById(R.id.longitudeTxt)).getText().toString();
 
-                if(latitude.equals("") || longitude.equals("")){
+                if (latitude.equals("") || longitude.equals("")) {
                     Toast.makeText(BusinessLocationActivity.this, "Can't enter empty value!", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -132,8 +132,6 @@ public class BusinessLocationActivity extends AppCompatActivity implements OnMap
 
     /**
      * Location received from location tracker
-     *
-     * @param location
      */
     @Override
     public void onLocationReceived(LocationInfo location) {

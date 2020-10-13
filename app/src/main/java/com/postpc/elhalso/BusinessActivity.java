@@ -25,6 +25,7 @@ import com.postpc.elhalso.adapters.GalleryAdapter;
 import com.postpc.elhalso.data.Business;
 import com.postpc.elhalso.data.User;
 import com.google.common.io.Files;
+import com.postpc.elhalso.utils.ImageDownloader;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -122,8 +123,8 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
 
     private void fillInBusinessDetails(){
         ((TextView)findViewById(R.id.descriptionTxt)).setText(business.getDescription().trim().equals("") ? "(No description)" : business.getDescription());
-        ((TextView)findViewById(R.id.reviewsTxt)).setText("(" + business.getReviews().size() + " reviews)");
-        ((TextView)findViewById(R.id.categoryTxt)).setText("Category: " + business.getCategory());
+        ((TextView)findViewById(R.id.reviewsTxt)).setText(getResources().getString(R.string.reviews_count, business.getReviews().size()));
+        ((TextView)findViewById(R.id.categoryTxt)).setText(getResources().getString(R.string.category_text, business.getCategory()));
         findViewById(R.id.noImagesTxt).setVisibility(business.getGallery().size() > 0 ? View.GONE : View.VISIBLE);
         ((RatingBar)findViewById(R.id.ratingBar)).setRating(business.getReviewsScore());
     }
@@ -254,8 +255,11 @@ public class BusinessActivity extends AppCompatActivity implements ImageDownload
         super.onDestroy();
         if(ownedBusiness)
             return;
-        for(File image : galleryFolder.listFiles()){
-            image.delete();
+        File[] galleryList = galleryFolder.listFiles();
+        if (galleryList != null) {
+            for (File image : galleryList) {
+                image.delete();
+            }
         }
         galleryFolder.delete();
     }

@@ -1,4 +1,4 @@
-package com.postpc.elhalso;
+package com.postpc.elhalso.utils;
 
 import android.content.Context;
 import android.content.Intent;
@@ -16,8 +16,8 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkerParameters;
 
+import com.postpc.elhalso.AppLoader;
 import com.postpc.elhalso.data.Business;
-import com.postpc.elhalso.utils.ThreadingHelper;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;

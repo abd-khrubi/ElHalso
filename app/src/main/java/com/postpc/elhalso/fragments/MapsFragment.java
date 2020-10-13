@@ -23,7 +23,7 @@ import com.postpc.elhalso.R;
 import com.postpc.elhalso.adapters.MapMarkerAdapter;
 import com.postpc.elhalso.data.Business;
 import com.postpc.elhalso.data.User;
-import com.postpc.elhalso.location.LocationReceivedCallback;
+import com.postpc.elhalso.callbacks.LocationReceivedCallback;
 import com.postpc.elhalso.location.LocationTracker;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -42,6 +42,9 @@ import com.ontbee.legacyforks.cn.pedant.SweetAlert.SweetAlertDialog;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Fragment screen for the user main screen as a map view
+ */
 public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private static final String TAG = "MapsFragment";
     private GoogleMap mMap;

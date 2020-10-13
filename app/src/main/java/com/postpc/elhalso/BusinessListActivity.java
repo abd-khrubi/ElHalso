@@ -13,7 +13,7 @@ import com.postpc.elhalso.adapters.BusinessListAdapter;
 import com.postpc.elhalso.callbacks.OnBusinessClick;
 import com.postpc.elhalso.data.Business;
 import com.postpc.elhalso.data.User;
-import com.postpc.elhalso.location.LocationInfo;
+import com.postpc.elhalso.data.LocationInfo;
 import com.postpc.elhalso.utils.Utils;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;

@@ -19,6 +19,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.postpc.elhalso.data.Business;
+import com.postpc.elhalso.utils.ImageUploader;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;

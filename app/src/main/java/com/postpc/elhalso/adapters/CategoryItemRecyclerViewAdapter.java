@@ -15,6 +15,9 @@ import com.postpc.elhalso.callbacks.OnCategoryClick;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Adapter for categories list in the user main screen
+ */
 public class CategoryItemRecyclerViewAdapter extends RecyclerView.Adapter<CategoryItemRecyclerViewAdapter.ViewHolder> {
 
     public List<String> mValues;

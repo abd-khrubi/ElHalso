@@ -29,7 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Fragment screen for the user main screen as a list of categories and businesses
+ */
 public class CategoriesFragment extends Fragment implements OnCategoryClick {
 
     private static final String TAG = "CategoriesFragment";

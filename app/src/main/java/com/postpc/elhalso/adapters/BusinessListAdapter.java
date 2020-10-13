@@ -16,7 +16,7 @@ import com.postpc.elhalso.R;
 import com.postpc.elhalso.callbacks.OnBusinessClick;
 import com.postpc.elhalso.data.Business;
 import com.postpc.elhalso.data.User;
-import com.postpc.elhalso.location.LocationInfo;
+import com.postpc.elhalso.data.LocationInfo;
 import com.postpc.elhalso.utils.Utils;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.GeoPoint;
@@ -24,6 +24,9 @@ import com.google.firebase.firestore.GeoPoint;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Adapter for Business listing in the main user screen
+ */
 public class BusinessListAdapter extends RecyclerView.Adapter<BusinessListAdapter.ViewHolder> {
 
     public List<Business> mValues;
@@ -72,11 +75,9 @@ public class BusinessListAdapter extends RecyclerView.Adapter<BusinessListAdapte
             GeoPoint loc2 = item.getCoordinates();
             float dist = Utils.distanceBetween(loc1.toLatLng(), new LatLng(loc2.getLatitude(), loc2.getLongitude()));
             if (dist < 1000) {
-//                distance = String.format("%.2f m", dist);
                 distance = context.getResources().getString(R.string.distance_m_km, dist, "m");
             } else {
                 distance = context.getResources().getString(R.string.distance_m_km, dist / 1000f, "Km");
-//                distance = String.format("%.2f km", dist / 1000f);
             }
         }
         holder.distanceTextView.setText(distance);
