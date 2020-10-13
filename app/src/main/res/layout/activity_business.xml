@@ -33,7 +33,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/businessToolbar"
-            android:src="@drawable/elhalso_logo_business" />
+            android:src="@drawable/empty_logo" />
 
         <TextView
             android:id="@+id/descriptionTxt"

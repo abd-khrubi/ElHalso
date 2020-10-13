@@ -31,7 +31,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editBusinessToolbar"
-            android:src="@drawable/elhalso_logo_business" />
+            android:src="@drawable/empty_logo" />
 
         <EditText
             android:id="@+id/nameTxt"
@@ -58,6 +58,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
+            app:layout_constraintBottom_toBottomOf="@+id/categoryTitleTxt"
             app:layout_constraintStart_toEndOf="@+id/categoryTitleTxt"
             app:layout_constraintTop_toTopOf="@+id/categoryTitleTxt" />
 
